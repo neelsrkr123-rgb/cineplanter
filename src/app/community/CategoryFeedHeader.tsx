@@ -9,7 +9,7 @@ import {
   increment,
   updateDoc
 } from "firebase/firestore";
-import { db, auth } from "@/lib/firebase";
+import { db, auth } from "#/lib/firebase";
 
 export default function CategoryFeedHeader({ category }: any) {
   const user = auth.currentUser;
