@@ -268,7 +268,7 @@ export default function InterestPage() {
 
   // Get current user ID - try both id and uid
   const currentUserId = user?.id || user?.uid;
-  const currentUserName = user?.name || user?.displayName || "User";
+  const currentUserName = user?.name || "User";
 
   // Load user profile
   useEffect(() => {
