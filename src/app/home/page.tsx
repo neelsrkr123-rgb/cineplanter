@@ -8,8 +8,20 @@ import Hero from '#/components/Hero';
 import PosterCard from '#/components/PosterCard';
 import Section from '#/components/Section';
 
+interface Movie {
+  id: string;
+  title: string;
+  language?: string;
+  runtime?: string;
+  genre?: string;  // 🔥 string[] থেকে string এ পরিবর্তন করুন
+  posterUrl?: string;
+  heroUrl?: string;
+  rating?: number;
+  uploadedAt?: any;
+}
+
 export default function Home() {
-  const [movies, setMovies] = useState<any[]>([]);
+  const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,7 +32,14 @@ export default function Home() {
         const snapshot = await getDocs(q);
         const moviesData = snapshot.docs.map(doc => ({
           id: doc.id,
-          ...doc.data()
+          title: doc.data().title || 'Untitled',
+          language: doc.data().language,
+          runtime: doc.data().runtime,
+          genre: Array.isArray(doc.data().genre) ? doc.data().genre.join(', ') : doc.data().genre, // 🔥 array কে string এ রূপান্তর
+          posterUrl: doc.data().posterUrl,
+          heroUrl: doc.data().heroUrl,
+          rating: doc.data().rating,
+          uploadedAt: doc.data().uploadedAt
         }));
         setMovies(moviesData);
       } catch (error) {
@@ -41,12 +60,13 @@ export default function Home() {
     );
   }
 
+  const featuredMovies = movies.slice(0, 5);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-purple-950 to-blue-950 pb-20">
       <Navbar />
       <main className="pt-24 px-4 md:px-6">
-        {/* 🔥 ফিক্স: featuredMovies prop পাস করুন */}
-        <Hero featuredMovies={movies.slice(0, 5)} />
+        <Hero featuredMovies={featuredMovies} />
 
         <div className="w-full px-2 md:px-6 mt-16">
           <Section title="New Movies" viewAllLink="/movies">
@@ -58,7 +78,7 @@ export default function Home() {
                   title={movie.title}
                   duration={movie.runtime}
                   language={movie.language}
-                  genres={movie.genre}
+                  genres={movie.genre ? [movie.genre] : []} // 🔥 string থেকে array তে রূপান্তর
                   posterUrl={movie.posterUrl}
                   rating={movie.rating}
                 />
