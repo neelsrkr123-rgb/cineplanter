@@ -45,7 +45,8 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-purple-950 to-blue-950 pb-20">
       <Navbar />
       <main className="pt-24 px-4 md:px-6">
-        <Hero />
+        {/* 🔥 ফিক্স: featuredMovies prop পাস করুন */}
+        <Hero featuredMovies={movies.slice(0, 5)} />
 
         <div className="w-full px-2 md:px-6 mt-16">
           <Section title="New Movies" viewAllLink="/movies">
@@ -53,12 +54,13 @@ export default function Home() {
               {movies.map(movie => (
                 <PosterCard
                   key={movie.id}
+                  id={movie.id}
                   title={movie.title}
-                  type={movie.language}
                   duration={movie.runtime}
                   language={movie.language}
-                  genre={movie.genre}
-                  gradient="bg-gradient-to-br from-purple-900 to-blue-900"
+                  genres={movie.genre}
+                  posterUrl={movie.posterUrl}
+                  rating={movie.rating}
                 />
               ))}
             </div>
