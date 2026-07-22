@@ -102,14 +102,19 @@ export default function AuthPage() {
   };
 
   const handleGoogleLogin = async () => {
-    setError('');
+  setError('');
+  try {
     const success = await loginWithGoogle();
     if (success) {
       router.push('/');
     } else {
       setError('Google login failed. Please try again.');
     }
-  };
+  } catch (err) {
+    console.error(err);
+    setError('An error occurred. Please try again.');
+  }
+};
 
   const handleClose = () => {
     router.push('/');

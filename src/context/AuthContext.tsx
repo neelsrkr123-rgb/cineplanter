@@ -22,7 +22,7 @@ interface UserData {
   uid?: string;
   name: string;
   username?: string;
-  title?: string; // 🔥 title যোগ করুন
+  title?: string;
   email: string;
   avatar: string;
   bio: string;
@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: firebaseUser.uid,
           name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || "User",
           username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || "",
-          title: "", // 🔥 title যোগ করুন
+          title: "",
           email: firebaseUser.email || "",
           avatar: firebaseUser.photoURL || "/default-avatar.png",
           bio: "",
@@ -218,14 +218,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Login with Google
+  // 🔥 FIXED: Login with Google
   const loginWithGoogle = async (): Promise<boolean> => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      console.log("Google login successful:", result.user);
       return true;
-    } catch (err) {
+    } catch (err: any) {
       console.error("Google login error:", err);
+      
+      // Handle specific errors
+      if (err.code === 'auth/popup-closed-by-user') {
+        console.log("Popup closed by user");
+      } else if (err.code === 'auth/cancelled-popup-request') {
+        console.log("Popup request cancelled");
+      } else if (err.code === 'auth/unauthorized-domain') {
+        alert("Please add this domain to Firebase authorized domains");
+      }
       return false;
     }
   };
@@ -254,7 +264,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: res.user.uid,
         name: name,
         username: name,
-        title: "", // 🔥 title যোগ করুন
+        title: "",
         email: email,
         avatar: "/default-avatar.png",
         bio: "",
