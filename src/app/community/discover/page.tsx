@@ -296,29 +296,29 @@ export default function DiscoverPage() {
           </section>
 
           <aside className="hidden lg:flex flex-col gap-5 sticky top-24 h-fit">
-            {user && (
-              <div className="bg-white/5 rounded-2xl p-5">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex-shrink-0 flex items-center justify-center overflow-hidden">
-                    {user.photoURL ? (
-                      <img src={user.photoURL} alt={user.displayName || "User"} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="font-bold text-white text-lg">{user.displayName?.[0]?.toUpperCase() || "U"}</span>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">{user.displayName || "User"}</p>
-                    <p className="text-xs text-slate-500">@{user.email?.split('@')[0]}</p>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
-                      <span>{joinedInterests.length} communities</span>
-                    </div>
-                  </div>
-                </div>
-                <Link href="/profile" className="block mt-3 text-xs text-purple-400 font-semibold hover:text-purple-300 text-center">
-                  View Profile
-                </Link>
+      {user && (
+        <div className="bg-white/5 rounded-2xl p-5">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex-shrink-0 flex items-center justify-center overflow-hidden">
+              {user.avatar ? (
+                <img src={user.avatar} alt={user.name || "User"} className="w-full h-full object-cover" />
+              ) : (
+                <span className="font-bold text-white text-lg">{user.name?.[0]?.toUpperCase() || "U"}</span>
+              )}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-white">{user.name || "User"}</p>
+              <p className="text-xs text-slate-500">@{user.email?.split('@')[0]}</p>
+              <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
+                <span>{joinedInterests.length} communities</span>
               </div>
-            )}
+            </div>
+          </div>
+          <Link href="/profile" className="block mt-3 text-xs text-purple-400 font-semibold hover:text-purple-300 text-center">
+            View Profile
+          </Link>
+        </div>
+      )}
 
             <div className="bg-white/5 rounded-2xl p-5">
               <h3 className="text-sm font-semibold text-white mb-2">💡 Tip</h3>
