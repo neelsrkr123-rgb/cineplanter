@@ -10,7 +10,7 @@ interface Movie {
   title: string;
   duration?: string;
   language?: string;
-  genre?: string;
+  genre?: string[];  // 🔥 string[] করুন
   description?: string;
   director?: string;
   posterUrl?: string;
