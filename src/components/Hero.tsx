@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import MovieCard from './MovieCard';
 import { useRouter } from 'next/navigation';
 
 interface Movie {
@@ -9,10 +8,12 @@ interface Movie {
   title: string;
   duration?: string;
   language?: string;
-  genre?: string;
+  genre?: string[];  // 🔥 string[] করুন
   description?: string;
   director?: string;
   posterUrl?: string;
+  heroUrl?: string;
+  rating?: number;
 }
 
 export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
@@ -31,60 +32,59 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
     router.push(`/streaming/movie/${movieId}`);
   };
 
-  const getPosition = (index: number) => {
-    const total = featuredMovies.length;
-    const relativeIndex = (index - currentIndex + total) % total;
-    if (relativeIndex === 0) return 'center';
-    if (relativeIndex === 1) return 'right';
-    if (relativeIndex === total - 1) return 'left';
-    return 'hidden';
-  };
+  if (featuredMovies.length === 0) {
+    return (
+      <div className="w-full h-64 bg-gradient-to-r from-purple-900 to-blue-900 rounded-2xl flex items-center justify-center">
+        <p className="text-white text-xl">Welcome to CinePlanter</p>
+      </div>
+    );
+  }
+
+  const movie = featuredMovies[currentIndex];
 
   return (
-    <section className="mt-1 py-1 flex justify-center flex-col items-center">
-      <div className="carousel-container relative w-full max-w-9xl h-[390px] flex justify-center items-center mb-5">
-        <button
-          onClick={() =>
-            setCurrentIndex(
-              (prev) => (prev - 1 + featuredMovies.length) % featuredMovies.length
-            )
-          }
-          className="absolute left-4 z-40 w-10 h-10 rounded-full bg-black/30 flex items-center justify-center text-white hover:bg-black/50 transition-all"
-        >
-          <i className="fas fa-chevron-left"></i>
-        </button>
-
-        {featuredMovies.map((movie, index) => (
-          <MovieCard
-            key={movie.id}
-            {...movie}
-            position={getPosition(index)}
+    <div className="relative w-full h-[400px] rounded-2xl overflow-hidden">
+      <img 
+        src={movie.heroUrl || movie.posterUrl || '/placeholder.jpg'}
+        alt={movie.title}
+        className="w-full h-full object-cover"
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = '/placeholder.jpg';
+        }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-8">
+        <div>
+          <h1 className="text-4xl font-bold text-white">{movie.title}</h1>
+          {movie.genre && movie.genre.length > 0 && (
+            <div className="flex gap-2 mt-2 flex-wrap">
+              {movie.genre.slice(0, 3).map((g, i) => (
+                <span key={i} className="px-2 py-1 bg-purple-600/50 rounded-full text-xs text-white">
+                  {g}
+                </span>
+              ))}
+            </div>
+          )}
+          <button 
             onClick={() => handlePlayClick(movie.id)}
-            posterUrl={movie.posterUrl || ''}
-          />
-        ))}
-
-        <button
-          onClick={() => setCurrentIndex((prev) => (prev + 1) % featuredMovies.length)}
-          className="absolute right-4 z-40 w-10 h-10 rounded-full bg-black/30 flex items-center justify-center text-white hover:bg-black/50 transition-all"
-        >
-          <i className="fas fa-chevron-right"></i>
-        </button>
+            className="mt-4 px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-full text-white transition"
+          >
+            Watch Now
+          </button>
+        </div>
       </div>
 
-      <div className="flex gap-3 mt-5">
+      {/* Navigation dots */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
         {featuredMovies.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              index === currentIndex
-                ? 'bg-white scale-125'
-                : 'bg-white/30 hover:bg-white/50'
+            className={`w-2 h-2 rounded-full transition-all ${
+              index === currentIndex ? 'bg-white scale-125' : 'bg-white/30'
             }`}
           />
         ))}
       </div>
-    </section>
+    </div>
   );
 }
