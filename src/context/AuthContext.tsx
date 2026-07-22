@@ -21,6 +21,8 @@ interface UserData {
   id: string;
   uid?: string;
   name: string;
+  username?: string;
+  title?: string; // 🔥 title যোগ করুন
   email: string;
   avatar: string;
   bio: string;
@@ -95,6 +97,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const newUserData = {
           id: firebaseUser.uid,
           name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || "User",
+          username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || "",
+          title: "", // 🔥 title যোগ করুন
           email: firebaseUser.email || "",
           avatar: firebaseUser.photoURL || "/default-avatar.png",
           bio: "",
@@ -242,7 +246,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await createUserWithEmailAndPassword(auth, email, password);
       
-      // Update display name
       if (auth.currentUser) {
         await updateProfile(auth.currentUser, { displayName: name });
       }
@@ -250,6 +253,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const newUserData = {
         id: res.user.uid,
         name: name,
+        username: name,
+        title: "", // 🔥 title যোগ করুন
         email: email,
         avatar: "/default-avatar.png",
         bio: "",
@@ -292,7 +297,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Logout
   const logout = async (): Promise<void> => {
-    // Set offline status before logout
     if (user?.id) {
       const userRef = doc(db, "users", user.id);
       await updateDoc(userRef, { online: false }).catch(console.error);
