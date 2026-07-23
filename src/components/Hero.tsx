@@ -36,8 +36,8 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
 
   if (featuredMovies.length === 0) {
     return (
-      <div className="w-full aspect-video bg-gradient-to-r from-purple-900/50 to-blue-900/50 rounded-2xl flex items-center justify-center">
-        <p className="text-white text-xl">No movies available</p>
+      <div className="w-full h-[300px] md:h-[400px] bg-gradient-to-r from-purple-900/50 to-blue-900/50 rounded-xl flex items-center justify-center">
+        <p className="text-white text-lg">No movies available</p>
       </div>
     );
   }
@@ -45,8 +45,7 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
   const currentMovie = featuredMovies[currentIndex];
 
   return (
-    <div className="w-full aspect-video rounded-2xl overflow-hidden relative">
-      {/* Background Image */}
+    <div className="w-full h-[300px] md:h-[400px] rounded-xl overflow-hidden relative">
       <img
         src={currentMovie.heroUrl || currentMovie.posterUrl || '/placeholder.jpg'}
         alt={currentMovie.title}
@@ -56,81 +55,70 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
         }}
       />
       
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
       
-      {/* Content */}
-      <div className="absolute bottom-0 left-0 p-6 md:p-10 max-w-2xl">
-        <h1 className="text-3xl md:text-5xl font-bold text-white mb-2">
+      <div className="absolute bottom-0 left-0 p-4 md:p-8 max-w-2xl">
+        <h1 className="text-2xl md:text-4xl font-bold text-white mb-1">
           {currentMovie.title}
         </h1>
         
-        {/* Genre Tags */}
-        <div className="flex flex-wrap gap-2 mb-3">
+        <div className="flex flex-wrap gap-1.5 mb-2">
           {currentMovie.genre && currentMovie.genre.length > 0 && (
             currentMovie.genre.slice(0, 3).map((g, i) => (
-              <span key={i} className="px-3 py-1 bg-purple-600/80 rounded-full text-sm text-white">
+              <span key={i} className="px-2.5 py-0.5 bg-purple-600/80 rounded-full text-xs text-white">
                 {g}
               </span>
             ))
           )}
           {currentMovie.language && (
-            <span className="px-3 py-1 bg-blue-600/80 rounded-full text-sm text-white">
+            <span className="px-2.5 py-0.5 bg-blue-600/80 rounded-full text-xs text-white">
               {currentMovie.language}
             </span>
           )}
           {currentMovie.duration && (
-            <span className="px-3 py-1 bg-gray-600/80 rounded-full text-sm text-white">
+            <span className="px-2.5 py-0.5 bg-gray-600/80 rounded-full text-xs text-white">
               {currentMovie.duration}
             </span>
           )}
         </div>
         
-        {/* Description */}
         {currentMovie.description && (
-          <p className="text-gray-300 text-sm md:text-base line-clamp-2 mb-4">
+          <p className="text-gray-300 text-xs md:text-sm line-clamp-2 mb-3">
             {currentMovie.description}
           </p>
         )}
         
-        {/* Watch Now Button */}
         <button
           onClick={() => handlePlayClick(currentMovie.id)}
-          className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-full text-white font-semibold transition-all duration-200 shadow-lg"
+          className="flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-full text-white text-sm font-medium transition-all duration-200 shadow-lg"
         >
-          <Play className="w-4 h-4" />
+          <Play className="w-3.5 h-3.5" />
           Watch Now
         </button>
       </div>
 
-      {/* Navigation Arrows */}
       <button
-        onClick={() =>
-          setCurrentIndex(
-            (prev) => (prev - 1 + featuredMovies.length) % featuredMovies.length
-          )
-        }
-        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-all backdrop-blur-sm"
+        onClick={() => setCurrentIndex((prev) => (prev - 1 + featuredMovies.length) % featuredMovies.length)}
+        className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-all backdrop-blur-sm"
       >
-        <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
+        <ChevronLeft className="w-4 h-4" />
       </button>
 
       <button
         onClick={() => setCurrentIndex((prev) => (prev + 1) % featuredMovies.length)}
-        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-all backdrop-blur-sm"
+        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-all backdrop-blur-sm"
       >
-        <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
+        <ChevronRight className="w-4 h-4" />
       </button>
 
-      {/* Dots */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
         {featuredMovies.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+            className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
               index === currentIndex
-                ? 'bg-white w-6'
+                ? 'bg-white w-4'
                 : 'bg-white/30 hover:bg-white/50'
             }`}
           />
