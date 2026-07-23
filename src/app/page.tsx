@@ -6,7 +6,7 @@ import Hero from '#/components/Hero';
 import PosterCard from '#/components/PosterCard';
 import Section from '#/components/Section';
 import { useEffect, useState } from 'react';
-import { collection, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '#/lib/firebase';
 
 interface Movie {
@@ -14,7 +14,7 @@ interface Movie {
   title: string;
   runtime?: string;
   language?: string;
-  genre?: string[];
+  genre?: string[];  // 🔥 শুধু string[] করুন
   posterUrl?: string | any;
   heroUrl?: string | any;
   views?: number;
@@ -29,6 +29,18 @@ const extractImageUrl = (imageData: string | any): string => {
   if (typeof imageData === 'string') return imageData;
   if (imageData.url) return imageData.url;
   return '';
+};
+
+// Helper function to safely parse genres as array
+const parseGenres = (genreData: any): string[] => {
+  if (!genreData) return [];
+  if (Array.isArray(genreData)) return genreData;
+  if (typeof genreData === 'string') {
+    return genreData.includes(',') 
+      ? genreData.split(',').map((g) => g.trim()) 
+      : [genreData];
+  }
+  return [];
 };
 
 export default function Home() {
@@ -48,14 +60,14 @@ export default function Home() {
           limit(12)
         );
         const latestSnapshot = await getDocs(latestQuery);
-        const latest = latestSnapshot.docs.map((doc) => {
+        const latest: Movie[] = latestSnapshot.docs.map((doc) => {
           const data = doc.data();
           return {
             id: doc.id,
             title: data.title || 'Untitled',
             runtime: data.runtime || '2h',
             language: data.language || 'English',
-            genre: data.genre || [],
+            genre: parseGenres(data.genre),
             posterUrl: extractImageUrl(data.posterUrl),
             heroUrl: extractImageUrl(data.heroUrl),
             views: data.views || 0,
@@ -73,14 +85,14 @@ export default function Home() {
           limit(12)
         );
         const watchedSnapshot = await getDocs(watchedQuery);
-        const watched = watchedSnapshot.docs.map((doc) => {
+        const watched: Movie[] = watchedSnapshot.docs.map((doc) => {
           const data = doc.data();
           return {
             id: doc.id,
             title: data.title || 'Untitled',
             runtime: data.runtime || '2h',
             language: data.language || 'English',
-            genre: data.genre || [],
+            genre: parseGenres(data.genre),
             posterUrl: extractImageUrl(data.posterUrl),
             heroUrl: extractImageUrl(data.heroUrl),
             views: data.views || 0,
@@ -97,14 +109,14 @@ export default function Home() {
           limit(12)
         );
         const ratedSnapshot = await getDocs(ratedQuery);
-        const rated = ratedSnapshot.docs.map((doc) => {
+        const rated: Movie[] = ratedSnapshot.docs.map((doc) => {
           const data = doc.data();
           return {
             id: doc.id,
             title: data.title || 'Untitled',
             runtime: data.runtime || '2h',
             language: data.language || 'English',
-            genre: data.genre || [],
+            genre: parseGenres(data.genre),
             posterUrl: extractImageUrl(data.posterUrl),
             heroUrl: extractImageUrl(data.heroUrl),
             views: data.views || 0,
@@ -114,20 +126,20 @@ export default function Home() {
         });
         setTopRated(rated);
 
-        // Hero Movies - first 5 movies with hero images
+        // Hero Movies - first 5 movies
         const heroQuery = query(
           collection(db, 'movies'),
           limit(5)
         );
         const heroSnapshot = await getDocs(heroQuery);
-        const hero = heroSnapshot.docs.map((doc) => {
+        const hero: Movie[] = heroSnapshot.docs.map((doc) => {
           const data = doc.data();
           return {
             id: doc.id,
             title: data.title || 'Untitled',
             runtime: data.runtime || '2h',
             language: data.language || 'English',
-            genre: data.genre || [],
+            genre: parseGenres(data.genre),
             posterUrl: extractImageUrl(data.posterUrl),
             heroUrl: extractImageUrl(data.heroUrl),
             views: data.views || 0,
@@ -166,11 +178,12 @@ export default function Home() {
 
       <Navbar />
 
-      <main className="relative z-10 pt-24 px-4 md:px-6">
+      <main className="relative z-10 pt-16">
         {/* HERO CAROUSEL */}
         {featuredMovies.length > 0 && <Hero featuredMovies={featuredMovies} />}
 
-        <div className="w-full px-5 md:px-6 mt-16">
+        {/* CONTENT SECTIONS */}
+        <div className="w-full px-4 md:px-8 mt-6">
           {/* NEW MOVIES */}
           <Section title="New Movies" viewAllLink="/movies">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
