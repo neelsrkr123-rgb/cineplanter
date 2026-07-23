@@ -178,7 +178,7 @@ export default function Home() {
 
       <Navbar />
 
-      <main className="relative z-10 pt-16">
+      <main className="relative z-10 pt-2">
         {/* HERO CAROUSEL */}
         {featuredMovies.length > 0 && <Hero featuredMovies={featuredMovies} />}
 

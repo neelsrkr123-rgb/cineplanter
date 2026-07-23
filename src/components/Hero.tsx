@@ -1,31 +1,27 @@
+// src/components/Hero.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 
-export interface Movie {
+interface Movie {
   id: string;
   title: string;
   duration?: string;
-  runtime?: string;
   language?: string;
-  genre?: string[] | string;
+  genre?: string[];
   description?: string;
   director?: string;
-  posterUrl?: string | any;
-  heroUrl?: string | any;
-  views?: number;
-  likes?: number;
+  posterUrl?: string;
+  heroUrl?: string;
   rating?: number;
-  uploadedAt?: any;
 }
 
 export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const router = useRouter();
 
-  // Cyclic auto-slide
   useEffect(() => {
     if (featuredMovies.length === 0) return;
     const interval = setInterval(() => {
@@ -38,162 +34,108 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
     router.push(`/streaming/movie/${movieId}`);
   };
 
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % featuredMovies.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prev) => (prev - 1 + featuredMovies.length) % featuredMovies.length);
-  };
-
   if (featuredMovies.length === 0) {
     return (
-      <div className="w-full h-[400px] bg-gradient-to-r from-purple-900/50 to-blue-900/50 rounded-2xl flex items-center justify-center">
+      <div className="w-full aspect-video bg-gradient-to-r from-purple-900/50 to-blue-900/50 rounded-2xl flex items-center justify-center">
         <p className="text-white text-xl">No movies available</p>
       </div>
     );
   }
 
-  // Exact 3D Positioning matching Screenshot 2
-  const getCardStyle = (index: number) => {
-    const total = featuredMovies.length;
-    const offset = (index - currentIndex + total) % total;
-
-    // Center Active Card
-    if (offset === 0) {
-      return {
-        transform: 'translateX(-50%) scale(1)',
-        left: '50%',
-        zIndex: 30,
-        opacity: 1,
-        filter: 'brightness(100%)',
-        pointerEvents: 'auto' as const,
-      };
-    }
-    // Right Peek Card (Pushed right so it overflows slightly off-screen)
-    if (offset === 1 || (total === 2 && offset === 1)) {
-      return {
-        transform: 'translateX(0%) scale(0.92)',
-        left: '82%',
-        zIndex: 20,
-        opacity: 0.5,
-        filter: 'brightness(35%) blur(1px)',
-        pointerEvents: 'auto' as const,
-      };
-    }
-    // Left Peek Card (Pushed left so it overflows slightly off-screen)
-    if (offset === total - 1) {
-      return {
-        transform: 'translateX(-100%) scale(0.92)',
-        left: '18%',
-        zIndex: 20,
-        opacity: 0.5,
-        filter: 'brightness(35%) blur(1px)',
-        pointerEvents: 'auto' as const,
-      };
-    }
-    // Hidden Background Cards
-    return {
-      transform: 'translateX(-50%) scale(0.5)',
-      left: '50%',
-      zIndex: 10,
-      opacity: 0,
-      pointerEvents: 'none' as const,
-    };
-  };
+  const currentMovie = featuredMovies[currentIndex];
 
   return (
-    <section className="relative w-full h-[380px] sm:h-[440px] md:h-[480px] lg:h-[520px] flex items-center justify-center overflow-hidden pt-2 pb-6">
-      {/* Navigation Buttons */}
-      <button
-        onClick={prevSlide}
-        className="absolute left-3 md:left-6 z-40 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/10"
-      >
-        <ChevronLeft className="w-6 h-6" />
-      </button>
-
-      <button
-        onClick={nextSlide}
-        className="absolute right-3 md:right-6 z-40 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/10"
-      >
-        <ChevronRight className="w-6 h-6" />
-      </button>
-
-      {/* 3D Cyclic Cards Container */}
-      <div className="relative w-full h-full">
-        {featuredMovies.map((movie, index) => {
-          const style = getCardStyle(index);
-          const genreText = Array.isArray(movie.genre) 
-            ? movie.genre.join(' | ') 
-            : movie.genre;
-
-          return (
-            <div
-              key={movie.id}
-              onClick={() => {
-                if (index !== currentIndex) {
-                  setCurrentIndex(index);
-                }
-              }}
-              style={style}
-              className="absolute top-0 w-[85%] sm:w-[75%] md:w-[68%] lg:w-[64%] h-full rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 ease-out cursor-pointer border border-white/10"
-            >
-              {/* Wide Hero Image */}
-              <img
-                src={movie.heroUrl || movie.posterUrl || '/placeholder.jpg'}
-                alt={movie.title}
-                className="w-full h-full object-cover select-none"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/placeholder.jpg';
-                }}
-              />
-
-              {/* Bottom Subtle Dark Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
-
-              {/* Title, Category & Watch Button Overlay */}
-              <div className="absolute bottom-6 md:bottom-10 left-6 md:left-10 z-10 text-white max-w-lg">
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-2 tracking-tight drop-shadow-lg">
-                  {movie.title}
-                </h2>
-
-                <div className="flex items-center gap-2 text-xs md:text-sm text-gray-200 mb-5 font-medium tracking-wide">
-                  {movie.language && (
-                    <span className="capitalize">{movie.language}</span>
-                  )}
-                  {movie.language && genreText && <span>|</span>}
-                  {genreText && <span>{genreText}</span>}
-                </div>
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handlePlayClick(movie.id);
-                  }}
-                  className="px-5 py-2 md:px-6 md:py-2.5 bg-black/60 hover:bg-black/90 text-white border border-white/20 font-semibold rounded-full flex items-center gap-2 transition-all duration-200 text-xs md:text-sm backdrop-blur-md shadow-lg active:scale-95"
-                >
-                  <span className="text-[10px] md:text-xs">▶</span> Watch Now
-                </button>
-              </div>
-            </div>
-          );
-        })}
+    <div className="w-full aspect-video rounded-2xl overflow-hidden relative">
+      {/* Background Image */}
+      <img
+        src={currentMovie.heroUrl || currentMovie.posterUrl || '/placeholder.jpg'}
+        alt={currentMovie.title}
+        className="w-full h-full object-cover"
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = '/placeholder.jpg';
+        }}
+      />
+      
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+      
+      {/* Content */}
+      <div className="absolute bottom-0 left-0 p-6 md:p-10 max-w-2xl">
+        <h1 className="text-3xl md:text-5xl font-bold text-white mb-2">
+          {currentMovie.title}
+        </h1>
+        
+        {/* Genre Tags */}
+        <div className="flex flex-wrap gap-2 mb-3">
+          {currentMovie.genre && currentMovie.genre.length > 0 && (
+            currentMovie.genre.slice(0, 3).map((g, i) => (
+              <span key={i} className="px-3 py-1 bg-purple-600/80 rounded-full text-sm text-white">
+                {g}
+              </span>
+            ))
+          )}
+          {currentMovie.language && (
+            <span className="px-3 py-1 bg-blue-600/80 rounded-full text-sm text-white">
+              {currentMovie.language}
+            </span>
+          )}
+          {currentMovie.duration && (
+            <span className="px-3 py-1 bg-gray-600/80 rounded-full text-sm text-white">
+              {currentMovie.duration}
+            </span>
+          )}
+        </div>
+        
+        {/* Description */}
+        {currentMovie.description && (
+          <p className="text-gray-300 text-sm md:text-base line-clamp-2 mb-4">
+            {currentMovie.description}
+          </p>
+        )}
+        
+        {/* Watch Now Button */}
+        <button
+          onClick={() => handlePlayClick(currentMovie.id)}
+          className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-full text-white font-semibold transition-all duration-200 shadow-lg"
+        >
+          <Play className="w-4 h-4" />
+          Watch Now
+        </button>
       </div>
 
-      {/* Center Pagination Dots */}
-      <div className="absolute bottom-1 z-40 flex gap-2 items-center">
+      {/* Navigation Arrows */}
+      <button
+        onClick={() =>
+          setCurrentIndex(
+            (prev) => (prev - 1 + featuredMovies.length) % featuredMovies.length
+          )
+        }
+        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-all backdrop-blur-sm"
+      >
+        <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
+      </button>
+
+      <button
+        onClick={() => setCurrentIndex((prev) => (prev + 1) % featuredMovies.length)}
+        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-all backdrop-blur-sm"
+      >
+        <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
+      </button>
+
+      {/* Dots */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
         {featuredMovies.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`rounded-full transition-all duration-300 ${
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${
               index === currentIndex
-                ? 'bg-white w-5 h-1.5'
-                : 'bg-white/30 hover:bg-white/50 w-1.5 h-1.5'
+                ? 'bg-white w-6'
+                : 'bg-white/30 hover:bg-white/50'
             }`}
           />
         ))}
       </div>
-    </section>
+    </div>
   );
 }
