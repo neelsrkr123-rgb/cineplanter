@@ -6,7 +6,7 @@ import Hero from '#/components/Hero';
 import PosterCard from '#/components/PosterCard';
 import Section from '#/components/Section';
 import { useEffect, useState } from 'react';
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit, where } from 'firebase/firestore';
 import { db } from '#/lib/firebase';
 
 interface Movie {
@@ -114,7 +114,7 @@ export default function Home() {
         });
         setTopRated(rated);
 
-        // Hero Movies - first 5 movies for hero slider
+        // Hero Movies - first 5 movies with hero images
         const heroQuery = query(
           collection(db, 'movies'),
           limit(5)
@@ -167,7 +167,7 @@ export default function Home() {
       <Navbar />
 
       <main className="relative z-10 pt-24 px-4 md:px-6">
-        {/* HERO CAROUSEL - Single Hero Banner */}
+        {/* HERO CAROUSEL */}
         {featuredMovies.length > 0 && <Hero featuredMovies={featuredMovies} />}
 
         <div className="w-full px-5 md:px-6 mt-16">
