@@ -60,14 +60,19 @@ export default function DiscoverPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Use only properties that exist in UserData type
+  const userId = user?.id || user?.uid;
+  const userName = user?.name || "User";
+  const userAvatar = user?.avatar || "";
+
   // Load user's joined interests and member counts
   useEffect(() => {
-    if (!user?.uid) {
+    if (!userId) {
       setLoading(false);
       return;
     }
 
-    const userRef = doc(db, "users", user.uid);
+    const userRef = doc(db, "users", userId);
     const unsubscribeUser = onSnapshot(userRef, (docSnap) => {
       if (docSnap.exists()) {
         setJoinedInterests(docSnap.data().joinedInterests || []);
@@ -93,19 +98,19 @@ export default function DiscoverPage() {
       unsubscribeUser();
       unsubscribes.forEach(unsub => unsub());
     };
-  }, [user?.uid]);
+  }, [userId]);
 
   const handleJoin = async (interestId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (!user?.uid) {
+    if (!userId) {
       alert("Please login to join communities");
       return;
     }
 
     try {
-      const userRef = doc(db, "users", user.uid);
+      const userRef = doc(db, "users", userId);
       const interestRef = doc(db, "interests", interestId);
       const isJoined = joinedInterests.includes(interestId);
 
@@ -300,15 +305,15 @@ export default function DiscoverPage() {
               <div className="bg-white/5 rounded-2xl p-5">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex-shrink-0 flex items-center justify-center overflow-hidden">
-                    {user.photoURL ? (
-                      <img src={user.photoURL} alt={user.displayName || "User"} className="w-full h-full object-cover" />
+                    {userAvatar ? (
+                      <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="font-bold text-white text-lg">{user.displayName?.[0]?.toUpperCase() || "U"}</span>
+                      <span className="font-bold text-white text-lg">{userName?.[0]?.toUpperCase() || "U"}</span>
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-white">{user.displayName || "User"}</p>
-                    <p className="text-xs text-slate-500">@{user.email?.split('@')[0]}</p>
+                    <p className="text-sm font-semibold text-white">{userName}</p>
+                    <p className="text-xs text-slate-500">@{user.email?.split('@')[0] || 'user'}</p>
                     <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
                       <span>{joinedInterests.length} communities</span>
                     </div>
