@@ -25,7 +25,7 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const router = useRouter();
 
-  // Cyclic auto-slide interval
+  // Cyclic auto-slide
   useEffect(() => {
     if (featuredMovies.length === 0) return;
     const interval = setInterval(() => {
@@ -48,50 +48,54 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
 
   if (featuredMovies.length === 0) {
     return (
-      <div className="w-full h-[520px] bg-gradient-to-r from-purple-900/50 to-blue-900/50 rounded-2xl flex items-center justify-center">
+      <div className="w-full h-[400px] bg-gradient-to-r from-purple-900/50 to-blue-900/50 rounded-2xl flex items-center justify-center">
         <p className="text-white text-xl">No movies available</p>
       </div>
     );
   }
 
-  // 3D positioning with larger size and balanced offset
+  // Exact 3D Positioning matching Screenshot 2
   const getCardStyle = (index: number) => {
     const total = featuredMovies.length;
     const offset = (index - currentIndex + total) % total;
 
-    // Center Active Card (Much larger)
+    // Center Active Card
     if (offset === 0) {
       return {
-        transform: 'translateX(0%) scale(1)',
+        transform: 'translateX(-50%) scale(1)',
+        left: '50%',
         zIndex: 30,
         opacity: 1,
         filter: 'brightness(100%)',
         pointerEvents: 'auto' as const,
       };
     }
-    // Right Peek Card
+    // Right Peek Card (Pushed right so it overflows slightly off-screen)
     if (offset === 1 || (total === 2 && offset === 1)) {
       return {
-        transform: 'translateX(45%) scale(0.88)',
+        transform: 'translateX(0%) scale(0.92)',
+        left: '82%',
         zIndex: 20,
         opacity: 0.5,
-        filter: 'brightness(40%) blur(1px)',
+        filter: 'brightness(35%) blur(1px)',
         pointerEvents: 'auto' as const,
       };
     }
-    // Left Peek Card
+    // Left Peek Card (Pushed left so it overflows slightly off-screen)
     if (offset === total - 1) {
       return {
-        transform: 'translateX(-45%) scale(0.88)',
+        transform: 'translateX(-100%) scale(0.92)',
+        left: '18%',
         zIndex: 20,
         opacity: 0.5,
-        filter: 'brightness(40%) blur(1px)',
+        filter: 'brightness(35%) blur(1px)',
         pointerEvents: 'auto' as const,
       };
     }
     // Hidden Background Cards
     return {
-      transform: 'translateX(0%) scale(0.5)',
+      transform: 'translateX(-50%) scale(0.5)',
+      left: '50%',
       zIndex: 10,
       opacity: 0,
       pointerEvents: 'none' as const,
@@ -99,28 +103,28 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
   };
 
   return (
-    <section className="relative w-full mx-auto h-[520px] md:h-[580px] flex items-center justify-center overflow-hidden py-2">
+    <section className="relative w-full h-[380px] sm:h-[440px] md:h-[480px] lg:h-[520px] flex items-center justify-center overflow-hidden pt-2 pb-6">
       {/* Navigation Buttons */}
       <button
         onClick={prevSlide}
-        className="absolute left-6 z-40 w-12 h-12 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-md transition-all duration-200 border border-white/10 shadow-2xl"
+        className="absolute left-3 md:left-6 z-40 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/10"
       >
         <ChevronLeft className="w-6 h-6" />
       </button>
 
       <button
         onClick={nextSlide}
-        className="absolute right-6 z-40 w-12 h-12 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-md transition-all duration-200 border border-white/10 shadow-2xl"
+        className="absolute right-3 md:right-6 z-40 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/10"
       >
         <ChevronRight className="w-6 h-6" />
       </button>
 
-      {/* 3D Cyclic Cards Stack */}
-      <div className="relative w-full h-full flex items-center justify-center">
+      {/* 3D Cyclic Cards Container */}
+      <div className="relative w-full h-full">
         {featuredMovies.map((movie, index) => {
           const style = getCardStyle(index);
           const genreText = Array.isArray(movie.genre) 
-            ? movie.genre.join(', ') 
+            ? movie.genre.join(' | ') 
             : movie.genre;
 
           return (
@@ -132,9 +136,9 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
                 }
               }}
               style={style}
-              className="absolute w-[90%] md:w-[80%] lg:w-[75%] h-[480px] md:h-[520px] rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 ease-out cursor-pointer border border-white/10"
+              className="absolute top-0 w-[85%] sm:w-[75%] md:w-[68%] lg:w-[64%] h-full rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 ease-out cursor-pointer border border-white/10"
             >
-              {/* Cover Image */}
+              {/* Wide Hero Image */}
               <img
                 src={movie.heroUrl || movie.posterUrl || '/placeholder.jpg'}
                 alt={movie.title}
@@ -144,16 +148,16 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
                 }}
               />
 
-              {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent" />
+              {/* Bottom Subtle Dark Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
 
-              {/* Content Overlay */}
-              <div className="absolute bottom-0 left-0 p-8 md:p-10 w-full max-w-2xl text-white">
-                <h2 className="text-4xl md:text-5xl font-extrabold mb-3 tracking-wide drop-shadow-lg">
+              {/* Title, Category & Watch Button Overlay */}
+              <div className="absolute bottom-6 md:bottom-10 left-6 md:left-10 z-10 text-white max-w-lg">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-2 tracking-tight drop-shadow-lg">
                   {movie.title}
                 </h2>
 
-                <div className="flex items-center gap-2 text-sm md:text-base text-gray-300 mb-6 font-medium">
+                <div className="flex items-center gap-2 text-xs md:text-sm text-gray-200 mb-5 font-medium tracking-wide">
                   {movie.language && (
                     <span className="capitalize">{movie.language}</span>
                   )}
@@ -166,9 +170,9 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
                     e.stopPropagation();
                     handlePlayClick(movie.id);
                   }}
-                  className="px-7 py-3 bg-white text-black hover:bg-gray-200 font-bold rounded-full flex items-center gap-2 transition-all duration-200 shadow-xl text-sm md:text-base active:scale-95"
+                  className="px-5 py-2 md:px-6 md:py-2.5 bg-black/60 hover:bg-black/90 text-white border border-white/20 font-semibold rounded-full flex items-center gap-2 transition-all duration-200 text-xs md:text-sm backdrop-blur-md shadow-lg active:scale-95"
                 >
-                  <span className="text-xs">▶</span> Watch Now
+                  <span className="text-[10px] md:text-xs">▶</span> Watch Now
                 </button>
               </div>
             </div>
@@ -176,16 +180,16 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
         })}
       </div>
 
-      {/* Slide Indicators */}
-      <div className="absolute bottom-1 z-40 flex gap-2">
+      {/* Center Pagination Dots */}
+      <div className="absolute bottom-1 z-40 flex gap-2 items-center">
         {featuredMovies.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`h-2 rounded-full transition-all duration-300 ${
+            className={`rounded-full transition-all duration-300 ${
               index === currentIndex
-                ? 'bg-white w-7'
-                : 'bg-white/30 hover:bg-white/50 w-2'
+                ? 'bg-white w-5 h-1.5'
+                : 'bg-white/30 hover:bg-white/50 w-1.5 h-1.5'
             }`}
           />
         ))}
