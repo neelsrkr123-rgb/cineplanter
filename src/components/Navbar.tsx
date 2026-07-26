@@ -713,7 +713,7 @@ export default function Navbar() {
       </nav>
 
       {/* spacing - REDUCED from h-24 to h-16 */}
-      <div className="h-10"></div>
+      <div className="h-5"></div>
     </>
   );
 }
