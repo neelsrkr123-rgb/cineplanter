@@ -22,10 +22,9 @@ export interface Movie {
 }
 
 export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
-  const [currentIndex, setCurrentIndex] = useState(1); // Start with center card
+  const [currentIndex, setCurrentIndex] = useState(1);
   const router = useRouter();
 
-  // Auto-slide every 5 seconds
   useEffect(() => {
     if (featuredMovies.length === 0) return;
     const interval = setInterval(() => {
@@ -46,7 +45,6 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
     );
   }
 
-  // Get card position class based on index
   const getCardPosition = (index: number) => {
     const total = featuredMovies.length;
     const offset = (index - currentIndex + total) % total;
@@ -107,53 +105,59 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
               {/* Left Side Content - Only on Center Card */}
               {isCenter && (
                 <div className="absolute inset-0 flex flex-col justify-center p-6 md:p-10 lg:p-14 z-10 w-full md:w-[60%] lg:w-[55%]">
-                  {/* Movie Title */}
+                  {/* Movie Title - No background */}
                   <h3 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-white mb-3 drop-shadow-lg">
                     {movie.title}
                   </h3>
 
-                  {/* Runtime | Language | Genre */}
+                  {/* Runtime | Language | Genre - No background */}
                   <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4">
                     {movie.duration && (
-                      <span className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs md:text-sm text-white font-medium">
+                      <span className="text-white/90 text-xs md:text-sm font-medium">
                         {movie.duration}
                       </span>
                     )}
+                    {movie.duration && (movie.language || genreText) && (
+                      <span className="text-white/50 text-xs md:text-sm">|</span>
+                    )}
                     {movie.language && (
-                      <span className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs md:text-sm text-white font-medium">
+                      <span className="text-white/90 text-xs md:text-sm font-medium">
                         {movie.language}
                       </span>
                     )}
+                    {(movie.language || movie.duration) && genreText && (
+                      <span className="text-white/50 text-xs md:text-sm">|</span>
+                    )}
                     {genreText && (
-                      <span className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs md:text-sm text-white font-medium">
+                      <span className="text-white/90 text-xs md:text-sm font-medium">
                         {genreText}
                       </span>
                     )}
                   </div>
 
-                  {/* Description */}
+                  {/* Description - No background */}
                   {movie.description && (
-                    <p className="text-gray-300 text-sm md:text-base max-w-xl mb-4 line-clamp-3">
+                    <p className="text-gray-300 text-sm md:text-base max-w-xl mb-4 line-clamp-3 drop-shadow-md">
                       {movie.description}
                     </p>
                   )}
 
-                  {/* Directed by */}
+                  {/* Directed by - No background */}
                   {movie.director && (
-                    <p className="text-white font-semibold text-sm md:text-base mb-5">
+                    <p className="text-white font-semibold text-sm md:text-base mb-5 drop-shadow-md">
                       Directed by: <span className="text-purple-300 font-medium">{movie.director}</span>
                     </p>
                   )}
 
-                  {/* Watch Now Button */}
+                  {/* Watch Now Button - Smaller */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handlePlayClick(movie.id);
                     }}
-                    className="group flex items-center gap-2 px-6 py-2.5 md:px-8 md:py-3 bg-white/10 hover:bg-white/25 backdrop-blur-md border border-white/30 rounded-full text-white font-semibold text-sm md:text-base transition-all duration-300 hover:scale-105 hover:shadow-2xl w-fit"
+                    className="group flex items-center gap-1.5 px-4 py-1.5 md:px-5 md:py-2 bg-white/10 hover:bg-white/25 backdrop-blur-md border border-white/30 rounded-full text-white font-semibold text-xs md:text-sm transition-all duration-300 hover:scale-105 hover:shadow-2xl w-fit"
                   >
-                    <Play className="w-4 h-4 md:w-5 md:h-5 fill-white" />
+                    <Play className="w-3 h-3 md:w-4 md:h-4 fill-white" />
                     <span>Watch Now</span>
                   </button>
                 </div>
