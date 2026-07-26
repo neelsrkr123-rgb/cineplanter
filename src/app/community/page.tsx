@@ -724,7 +724,7 @@ export default function CommunityMainPage() {
         <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] bg-blue-900/10 blur-[120px] rounded-full" />
       </div>
       <Navbar />
-      <main className="relative pt-24 pb-10 px-4 md:px-8">
+       <main className="relative pt-5 pb-10 px-4 md:px-8">
         <div className="max-w-[1800px] mx-auto grid grid-cols-1 lg:grid-cols-[260px_1fr_380px] gap-8 lg:gap-12">
           {/* LEFT SIDEBAR */}
           <aside className="hidden lg:flex flex-col gap-1 sticky top-24 h-fit">

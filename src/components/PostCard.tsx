@@ -22,7 +22,7 @@ interface Post {
   userName: string;
   userPhotoURL?: string;
   content: string;
-  createdAt: any;
+  createdAt: Date;
   likesCount: number;
   commentsCount: number;
   likes?: string[];
@@ -40,7 +40,7 @@ interface Comment {
   userId: string;
   userName: string;
   content: string;
-  createdAt: any;
+  createdAt: Date;
   likes: string[];
   likesCount: number;
   replies?: Reply[];
@@ -51,7 +51,7 @@ interface Reply {
   userId: string;
   userName: string;
   content: string;
-  createdAt: any;
+  createdAt: Date;
   likes: string[];
   likesCount: number;
 }
@@ -95,57 +95,6 @@ export default function PostCard({ post: initialPost, currentUserId, currentUser
   const commentMenuRef = useRef<HTMLDivElement>(null)
   const replyMenuRef = useRef<HTMLDivElement>(null)
   const tagsMenuRef = useRef<HTMLDivElement>(null)
-
-  // Safe date formatter - handles all date types
-  const formatDate = (date: any): string => {
-    if (!date) return "Recently"
-    
-    try {
-      let dateObj: Date;
-      
-      // Check if it's a Firestore Timestamp
-      if (date && typeof date.toDate === 'function') {
-        dateObj = date.toDate();
-      } 
-      // Check if it's already a Date object
-      else if (date instanceof Date) {
-        dateObj = date;
-      } 
-      // Check if it's a number (timestamp)
-      else if (typeof date === 'number') {
-        dateObj = new Date(date);
-      } 
-      // Check if it's a string
-      else if (typeof date === 'string') {
-        dateObj = new Date(date);
-      } 
-      // Fallback
-      else {
-        dateObj = new Date(date);
-      }
-      
-      // Validate the date
-      if (isNaN(dateObj.getTime())) {
-        return "Recently";
-      }
-      
-      const now = new Date()
-      const diffMs = now.getTime() - dateObj.getTime()
-      const diffMins = Math.floor(diffMs / 60000)
-      const diffHours = Math.floor(diffMs / 3600000)
-      const diffDays = Math.floor(diffMs / 86400000)
-      
-      if (diffMins < 1) return "Just now"
-      if (diffMins < 60) return `${diffMins}m ago`
-      if (diffHours < 24) return `${diffHours}h ago`
-      if (diffDays < 7) return `${diffDays}d ago`
-      
-      return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    } catch (error) {
-      console.error("Error formatting date:", error)
-      return "Recently"
-    }
-  }
 
   // Real-time listener for post updates (likes, comments count)
   useEffect(() => {
@@ -307,14 +256,14 @@ export default function PostCard({ post: initialPost, currentUserId, currentUser
         replies = repliesSnap.docs.map(replyDoc => ({
           id: replyDoc.id,
           ...replyDoc.data(),
-          createdAt: replyDoc.data().createdAt
+          createdAt: replyDoc.data().createdAt?.toDate?.() || new Date()
         } as Reply));
         
         return {
           id: doc.id,
           ...data,
           replies,
-          createdAt: data.createdAt
+          createdAt: data.createdAt?.toDate?.() || new Date()
         } as Comment;
       }));
       
@@ -615,6 +564,22 @@ export default function PostCard({ post: initialPost, currentUserId, currentUser
       console.error("Error blocking user:", error)
       alert("Failed to block user. Please try again.")
     }
+  }
+
+  const formatDate = (date: Date) => {
+    if (!date) return "Recently"
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+    
+    if (diffMins < 1) return "Just now"
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    if (diffDays < 7) return `${diffDays}d ago`
+    
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
   }
 
   const reportReasons = ["Spam", "Harassment", "Inappropriate content", "Misinformation", "Copyright violation", "Other"]
@@ -954,7 +919,7 @@ export default function PostCard({ post: initialPost, currentUserId, currentUser
                 <button 
                   onClick={addComment}
                   disabled={!commentText.trim()}
-                  className="text-blue-400 text-sm font-semibold hover:text-blue-300 disabled:opacity-50"
+                  className="text-blue-400 text-sm font-semibold hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Post
                 </button>
