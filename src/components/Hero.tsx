@@ -99,60 +99,80 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
                 }}
               />
 
-              {/* Dark Gradient Overlay - Left to Right */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent" />
+              {/* Left Side Vignette Gradient - Only on Center Card */}
+              {isCenter && (
+                <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 via-60% to-transparent" />
+              )}
 
-              {/* Movie Info */}
-              <div className="absolute inset-0 flex flex-col justify-center p-6 md:p-12 z-10 w-full md:w-[60%]">
-                <h3 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-white mb-3 drop-shadow-lg">
-                  {movie.title}
-                </h3>
+              {/* Left Side Content - Only on Center Card */}
+              {isCenter && (
+                <div className="absolute inset-0 flex flex-col justify-center p-6 md:p-10 lg:p-14 z-10 w-full md:w-[60%] lg:w-[55%]">
+                  {/* Movie Title */}
+                  <h3 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-white mb-3 drop-shadow-lg">
+                    {movie.title}
+                  </h3>
 
-                <div className="flex flex-wrap gap-2 md:gap-3 mb-3">
-                  {movie.duration && (
-                    <span className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs md:text-sm text-white font-medium">
-                      {movie.duration}
-                    </span>
-                  )}
-                  {movie.language && (
-                    <span className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs md:text-sm text-white font-medium">
-                      {movie.language}
-                    </span>
-                  )}
-                  {genreText && (
-                    <span className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs md:text-sm text-white font-medium">
-                      {genreText}
-                    </span>
-                  )}
-                </div>
-
-                {movie.description && isCenter && (
-                  <p className="text-gray-300 text-sm md:text-base max-w-xl mb-4 line-clamp-3">
-                    {movie.description}
-                  </p>
-                )}
-
-                {movie.director && isCenter && (
-                  <p className="text-white font-semibold text-sm md:text-base">
-                    Directed by: <span className="text-purple-300 font-medium">{movie.director}</span>
-                  </p>
-                )}
-
-                {/* Play Button - Only on center card */}
-                {isCenter && (
-                  <div className="absolute right-4 md:right-10 bottom-4 md:bottom-10 z-20">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePlayClick(movie.id);
-                      }}
-                      className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/90 hover:bg-white text-purple-900 flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-xl"
-                    >
-                      <Play className="w-5 h-5 md:w-6 md:h-6 fill-current ml-1" />
-                    </button>
+                  {/* Runtime | Language | Genre */}
+                  <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4">
+                    {movie.duration && (
+                      <span className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs md:text-sm text-white font-medium">
+                        {movie.duration}
+                      </span>
+                    )}
+                    {movie.language && (
+                      <span className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs md:text-sm text-white font-medium">
+                        {movie.language}
+                      </span>
+                    )}
+                    {genreText && (
+                      <span className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs md:text-sm text-white font-medium">
+                        {genreText}
+                      </span>
+                    )}
                   </div>
-                )}
-              </div>
+
+                  {/* Description */}
+                  {movie.description && (
+                    <p className="text-gray-300 text-sm md:text-base max-w-xl mb-4 line-clamp-3">
+                      {movie.description}
+                    </p>
+                  )}
+
+                  {/* Directed by */}
+                  {movie.director && (
+                    <p className="text-white font-semibold text-sm md:text-base mb-5">
+                      Directed by: <span className="text-purple-300 font-medium">{movie.director}</span>
+                    </p>
+                  )}
+
+                  {/* Watch Now Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePlayClick(movie.id);
+                    }}
+                    className="group flex items-center gap-2 px-6 py-2.5 md:px-8 md:py-3 bg-white/10 hover:bg-white/25 backdrop-blur-md border border-white/30 rounded-full text-white font-semibold text-sm md:text-base transition-all duration-300 hover:scale-105 hover:shadow-2xl w-fit"
+                  >
+                    <Play className="w-4 h-4 md:w-5 md:h-5 fill-white" />
+                    <span>Watch Now</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Play Button - Only on side cards (left/right) */}
+              {!isCenter && (
+                <div className="absolute inset-0 flex items-center justify-center z-20">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePlayClick(movie.id);
+                    }}
+                    className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 hover:scale-110 border border-white/30"
+                  >
+                    <Play className="w-5 h-5 md:w-6 md:h-6 fill-white ml-1" />
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}
@@ -164,10 +184,10 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+            className={`transition-all duration-300 rounded-full ${
               index === currentIndex
                 ? 'bg-white w-6 h-2 shadow-lg shadow-purple-500/30'
-                : 'bg-white/30 hover:bg-white/50'
+                : 'bg-white/30 hover:bg-white/50 w-2 h-2'
             }`}
           />
         ))}
