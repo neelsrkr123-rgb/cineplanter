@@ -712,8 +712,8 @@ export default function Navbar() {
         </AnimatePresence>
       </nav>
 
-      {/* spacing */}
-      <div className="h-24"></div>
+      {/* spacing - REDUCED from h-24 to h-16 */}
+      <div className="h-16"></div>
     </>
   );
 }
