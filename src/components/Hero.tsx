@@ -103,7 +103,7 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
   };
 
   return (
-    <section className="relative w-full h-[380px] sm:h-[440px] md:h-[480px] lg:h-[520px] flex items-center justify-center overflow-hidden pt-2 pb-6 px-3">
+    <section className="relative w-full h-[380px] sm:h-[440px] md:h-[480px] lg:h-[520px] flex items-center justify-center overflow-hidden pt-2 pb-6 px-8">
       {/* Navigation Buttons */}
       <button
         onClick={prevSlide}
