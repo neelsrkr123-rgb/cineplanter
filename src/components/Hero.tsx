@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Play } from 'lucide-react';
+import { Play, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export interface Movie {
   id: string;
@@ -19,12 +19,15 @@ export interface Movie {
   likes?: number;
   rating?: number;
   uploadedAt?: any;
+  cast?: Array<{imageUrl?: string; name?: string;}>;
+  crew?: Array<{userId?: string; name?: string; role?: string}>;
 }
 
 export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
-  const [currentIndex, setCurrentIndex] = useState(1);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const router = useRouter();
 
+  // Auto-slide every 5 seconds
   useEffect(() => {
     if (featuredMovies.length === 0) return;
     const interval = setInterval(() => {
@@ -35,6 +38,18 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
 
   const handlePlayClick = (movieId: string) => {
     router.push(`/streaming/movie/${movieId}`);
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentIndex(index);
+  };
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev + 1) % featuredMovies.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev - 1 + featuredMovies.length) % featuredMovies.length);
   };
 
   if (featuredMovies.length === 0) {
@@ -58,6 +73,22 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
   return (
     <section className="w-full max-w-[1200px] mx-auto px-4 py-8">
       <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] flex items-center justify-center">
+        
+        {/* Navigation Arrows */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-2 md:left-4 z-40 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 hover:scale-110"
+        >
+          <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+        </button>
+
+        <button
+          onClick={nextSlide}
+          className="absolute right-2 md:right-4 z-40 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 hover:scale-110"
+        >
+          <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+        </button>
+
         {featuredMovies.map((movie, index) => {
           const position = getCardPosition(index);
           const genreText = Array.isArray(movie.genre) 
@@ -74,17 +105,21 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
             <div
               key={movie.id}
               className={`absolute w-full h-full rounded-2xl overflow-hidden shadow-2xl transition-all duration-700 ease-in-out border border-white/10
-                ${isCenter ? 'transform scale-100 opacity-100 z-30' : ''}
-                ${isLeft ? 'transform -translate-x-[75%] scale-85 blur-sm opacity-60 z-10' : ''}
-                ${isRight ? 'transform translate-x-[75%] scale-85 blur-sm opacity-60 z-10' : ''}
+                ${isCenter ? 'z-30' : ''}
+                ${isLeft ? 'z-10' : ''}
+                ${isRight ? 'z-10' : ''}
               `}
               style={{
-                transform: isLeft ? 'translateX(-75%) scale(0.85)' : 
+                transform: isCenter ? 'translateX(0) scale(1)' : 
+                           isLeft ? 'translateX(-75%) scale(0.85)' : 
                            isRight ? 'translateX(75%) scale(0.85)' : 
                            'translateX(0) scale(1)',
-                filter: isLeft || isRight ? 'blur(4px)' : 'blur(0)',
-                opacity: isLeft || isRight ? 0.6 : 1,
+                filter: isCenter ? 'blur(0) brightness(1)' : 
+                        isLeft || isRight ? 'blur(4px) brightness(0.4)' : 
+                        'blur(0) brightness(1)',
+                opacity: isCenter ? 1 : 0.5,
                 zIndex: isCenter ? 30 : 10,
+                pointerEvents: isCenter ? 'auto' : 'none',
               }}
             >
               {/* Background Image */}
@@ -105,12 +140,12 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
               {/* Left Side Content - Only on Center Card */}
               {isCenter && (
                 <div className="absolute inset-0 flex flex-col justify-center p-6 md:p-10 lg:p-14 z-10 w-full md:w-[60%] lg:w-[55%]">
-                  {/* Movie Title - No background */}
+                  {/* Movie Title */}
                   <h3 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-white mb-3 drop-shadow-lg">
                     {movie.title}
                   </h3>
 
-                  {/* Runtime | Language | Genre - No background */}
+                  {/* Runtime | Language | Genre */}
                   <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-4">
                     {movie.duration && (
                       <span className="text-white/90 text-xs md:text-sm font-medium">
@@ -135,21 +170,21 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
                     )}
                   </div>
 
-                  {/* Description - No background */}
+                  {/* Description */}
                   {movie.description && (
                     <p className="text-gray-300 text-sm md:text-base max-w-xl mb-4 line-clamp-3 drop-shadow-md">
                       {movie.description}
                     </p>
                   )}
 
-                  {/* Directed by - No background */}
+                  {/* Directed by */}
                   {movie.director && (
                     <p className="text-white font-semibold text-sm md:text-base mb-5 drop-shadow-md">
                       Directed by: <span className="text-purple-300 font-medium">{movie.director}</span>
                     </p>
                   )}
 
-                  {/* Watch Now Button - Smaller */}
+                  {/* Watch Now Button */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -163,7 +198,7 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
                 </div>
               )}
 
-              {/* Play Button - Only on side cards (left/right) */}
+              {/* Play Button - Only on side cards */}
               {!isCenter && (
                 <div className="absolute inset-0 flex items-center justify-center z-20">
                   <button
@@ -187,7 +222,7 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
         {featuredMovies.map((_, index) => (
           <button
             key={index}
-            onClick={() => setCurrentIndex(index)}
+            onClick={() => goToSlide(index)}
             className={`transition-all duration-300 rounded-full ${
               index === currentIndex
                 ? 'bg-white w-6 h-2 shadow-lg shadow-purple-500/30'
