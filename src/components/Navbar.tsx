@@ -270,20 +270,17 @@ export default function Navbar() {
     setSearchResults([]);
   };
 
+  // UPDATED: Only Create Post and Upload Movie
   const uploadMenuItems = [
     { name: 'Create Post', href: '/community', icon: Users },
     { name: 'Upload Movie', href: '/upload/movie', icon: Film },
-    { name: 'Upload Assets', href: '/upload/assets', icon: Store },
-    { name: 'Create Job', href: '/freelance/create-job', icon: Briefcase },
   ];
 
+  // UPDATED: Only Explore, Movies, Community
   const navLinks = [
     { name: 'Explore', href: '/', icon: Compass },
     { name: 'Movies', href: '/movies', icon: Clapperboard },
-    { name: 'Freelance', href: '/freelance', icon: BriefcaseBusiness },
-    { name: 'Academy', href: '/academy', icon: Book },
     { name: 'Community', href: '/community', icon: Users },
-    { name: 'Store', href: '/store', icon: Store },
   ];
 
   const formatCount = (count: number): string => {
@@ -363,6 +360,7 @@ export default function Navbar() {
               </div>
             </Link>
 
+            {/* UPDATED: Only Explore, Movies, Community */}
             <div className="hidden lg:flex items-center gap-6 text-sm">
               {navLinks.map((link) => {
                 const isActive = pathname === link.href || pathname.startsWith(link.href + "/");
@@ -451,7 +449,7 @@ export default function Navbar() {
               </AnimatePresence>
             </div>
 
-            {/* Upload Dropdown */}
+            {/* UPDATED: Upload Dropdown - Only Create Post and Upload Movie */}
             {user && (
               <div className="relative hidden md:block" ref={uploadRef}>
                 <button
@@ -664,7 +662,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Menu Items */}
+        {/* Mobile Menu Items - UPDATED */}
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
@@ -674,6 +672,7 @@ export default function Navbar() {
               className="lg:hidden bg-gray-900/95 backdrop-blur-lg border-t border-white/10 mt-3 rounded-b-xl overflow-hidden"
             >
               <div className="grid grid-cols-2 gap-4 p-4">
+                {/* UPDATED: Only Explore, Movies, Community */}
                 {navLinks.map((link) => {
                   const isActive = pathname.startsWith(link.href);
                   const Icon = link.icon;
@@ -692,6 +691,7 @@ export default function Navbar() {
                   );
                 })}
                 <div className="col-span-2 mt-2 pt-2 border-t border-white/10"></div>
+                {/* UPDATED: Only Create Post and Upload Movie */}
                 {uploadMenuItems.map((item) => {
                   const Icon = item.icon;
                   return (
