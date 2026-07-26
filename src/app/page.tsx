@@ -14,13 +14,17 @@ interface Movie {
   title: string;
   runtime?: string;
   language?: string;
-  genre?: string[];  // 🔥 শুধু string[] করুন
+  genre?: string[];
+  director?: string;
+  description?: string;
   posterUrl?: string | any;
   heroUrl?: string | any;
   views?: number;
   likes?: number;
   rating?: number;
   uploadedAt?: any;
+  cast?: Array<{imageUrl?: string; name?: string}>;
+  crew?: Array<{userId?: string; name?: string; role?: string}>;
 }
 
 // Helper function to extract URL from either string or object
@@ -28,6 +32,10 @@ const extractImageUrl = (imageData: string | any): string => {
   if (!imageData) return '';
   if (typeof imageData === 'string') return imageData;
   if (imageData.url) return imageData.url;
+  if (imageData.publicId) {
+    // Cloudinary URL from publicId
+    return `https://res.cloudinary.com/your-cloud-name/image/upload/${imageData.publicId}`;
+  }
   return '';
 };
 
@@ -41,6 +49,15 @@ const parseGenres = (genreData: any): string[] => {
       : [genreData];
   }
   return [];
+};
+
+// Helper function to get director from crew array
+const getDirector = (crew: any[]): string => {
+  if (!crew || !Array.isArray(crew)) return '';
+  const director = crew.find((c: any) => 
+    c.role === 'Director' || c.role === 'director'
+  );
+  return director?.name || director?.userId || '';
 };
 
 export default function Home() {
@@ -68,12 +85,16 @@ export default function Home() {
             runtime: data.runtime || '2h',
             language: data.language || 'English',
             genre: parseGenres(data.genre),
+            director: getDirector(data.crew),  // 👈 crew থেকে director খুঁজে নিন
+            description: data.description || data.overview || '',  // 👈 description
             posterUrl: extractImageUrl(data.posterUrl),
             heroUrl: extractImageUrl(data.heroUrl),
             views: data.views || 0,
             likes: data.likes || 0,
             rating: data.rating || 0,
             uploadedAt: data.uploadedAt,
+            cast: data.cast || [],
+            crew: data.crew || [],
           };
         });
         setNewMovies(latest);
@@ -93,11 +114,15 @@ export default function Home() {
             runtime: data.runtime || '2h',
             language: data.language || 'English',
             genre: parseGenres(data.genre),
+            director: getDirector(data.crew),
+            description: data.description || data.overview || '',
             posterUrl: extractImageUrl(data.posterUrl),
             heroUrl: extractImageUrl(data.heroUrl),
             views: data.views || 0,
             likes: data.likes || 0,
             rating: data.rating || 0,
+            cast: data.cast || [],
+            crew: data.crew || [],
           };
         });
         setMostWatched(watched);
@@ -117,11 +142,15 @@ export default function Home() {
             runtime: data.runtime || '2h',
             language: data.language || 'English',
             genre: parseGenres(data.genre),
+            director: getDirector(data.crew),
+            description: data.description || data.overview || '',
             posterUrl: extractImageUrl(data.posterUrl),
             heroUrl: extractImageUrl(data.heroUrl),
             views: data.views || 0,
             likes: data.likes || 0,
             rating: data.rating || 0,
+            cast: data.cast || [],
+            crew: data.crew || [],
           };
         });
         setTopRated(rated);
@@ -140,11 +169,15 @@ export default function Home() {
             runtime: data.runtime || '2h',
             language: data.language || 'English',
             genre: parseGenres(data.genre),
+            director: getDirector(data.crew),  // 👈 crew থেকে director
+            description: data.description || data.overview || '',  // 👈 description
             posterUrl: extractImageUrl(data.posterUrl),
             heroUrl: extractImageUrl(data.heroUrl),
             views: data.views || 0,
             likes: data.likes || 0,
             rating: data.rating || 0,
+            cast: data.cast || [],
+            crew: data.crew || [],
           };
         });
         setFeaturedMovies(hero);
