@@ -170,13 +170,13 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
                     </p>
                   )}
 
-                  {/* Watch Now Button */}
+                  {/* Watch Now Button - Updated hover effect like Sign In button */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handlePlayClick(movie.id);
                     }}
-                    className="group flex items-center gap-1.5 px-4 py-1.5 md:px-5 md:py-2 bg-white/10 hover:bg-white/25 backdrop-blur-md border border-white/30 rounded-full text-white font-semibold text-xs md:text-sm transition-all duration-300 hover:scale-105 hover:shadow-2xl w-fit"
+                    className="group flex items-center gap-1.5 px-4 py-1.5 md:px-5 md:py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold text-xs md:text-sm rounded-full transition-all duration-300 hover:scale-105 hover:shadow-2xl w-fit shadow-lg"
                   >
                     <Play className="w-3 h-3 md:w-4 md:h-4 fill-white" />
                     <span>Watch Now</span>
@@ -206,14 +206,14 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
       {/* Navigation Arrows - Moved extremely far left and right */}
       <button
         onClick={prevSlide}
-        className="absolute left-0 md:-left-24 lg:-left-40 xl:-left-56 2xl:-left-72 top-1/2 -translate-y-1/2 z-[60] w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 hover:scale-110 shadow-lg"
+        className="absolute left-0 md:-left-20 lg:-left-32 xl:-left-48 top-1/2 -translate-y-1/2 z-[60] w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 hover:scale-110 shadow-lg"
       >
         <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
       </button>
 
       <button
         onClick={nextSlide}
-        className="absolute right-0 md:-right-24 lg:-right-40 xl:-right-56 2xl:-right-72 top-1/2 -translate-y-1/2 z-[60] w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 hover:scale-110 shadow-lg"
+        className="absolute right-0 md:-right-20 lg:-right-32 xl:-right-48 top-1/2 -translate-y-1/2 z-[60] w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 hover:scale-110 shadow-lg"
       >
         <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
       </button>
