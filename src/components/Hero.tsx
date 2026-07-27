@@ -74,21 +74,7 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
     <section className="w-full max-w-[1200px] mx-auto px-4 py-8">
       <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] flex items-center justify-center">
         
-        {/* Navigation Arrows */}
-        <button
-          onClick={prevSlide}
-          className="absolute left-2 md:left-4 z-40 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 hover:scale-110"
-        >
-          <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
-        </button>
-
-        <button
-          onClick={nextSlide}
-          className="absolute right-2 md:right-4 z-40 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 hover:scale-110"
-        >
-          <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
-        </button>
-
+        {/* Slides */}
         {featuredMovies.map((movie, index) => {
           const position = getCardPosition(index);
           const genreText = Array.isArray(movie.genre) 
@@ -215,6 +201,21 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
             </div>
           );
         })}
+
+        {/* Navigation Arrows - UPDATED: closer to edges, on top of everything */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-0 md:left-1 z-[60] w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 hover:scale-110 shadow-lg"
+        >
+          <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
+        </button>
+
+        <button
+          onClick={nextSlide}
+          className="absolute right-0 md:right-1 z-[60] w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 hover:scale-110 shadow-lg"
+        >
+          <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
+        </button>
       </div>
 
       {/* Pagination Dots */}
