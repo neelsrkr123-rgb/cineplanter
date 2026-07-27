@@ -71,7 +71,7 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
   };
 
   return (
-    <section className="w-full max-w-[1200px] mx-auto px-4 py-8">
+    <section className="w-full max-w-[1200px] mx-auto px-4 py-8 relative">
       <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] flex items-center justify-center">
         
         {/* Slides */}
@@ -201,22 +201,22 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
             </div>
           );
         })}
-
-        {/* Navigation Arrows - UPDATED: closer to edges, on top of everything */}
-        <button
-          onClick={prevSlide}
-          className="absolute left-0 md:left-1 z-[60] w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 hover:scale-110 shadow-lg"
-        >
-          <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
-        </button>
-
-        <button
-          onClick={nextSlide}
-          className="absolute right-0 md:right-1 z-[60] w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 hover:scale-110 shadow-lg"
-        >
-          <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
-        </button>
       </div>
+
+      {/* Navigation Arrows - Moved extremely far left and right */}
+      <button
+        onClick={prevSlide}
+        className="absolute left-0 md:-left-24 lg:-left-40 xl:-left-56 2xl:-left-72 top-1/2 -translate-y-1/2 z-[60] w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 hover:scale-110 shadow-lg"
+      >
+        <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
+      </button>
+
+      <button
+        onClick={nextSlide}
+        className="absolute right-0 md:-right-24 lg:-right-40 xl:-right-56 2xl:-right-72 top-1/2 -translate-y-1/2 z-[60] w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 hover:scale-110 shadow-lg"
+      >
+        <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
+      </button>
 
       {/* Pagination Dots */}
       <div className="flex justify-center gap-3 mt-4">
