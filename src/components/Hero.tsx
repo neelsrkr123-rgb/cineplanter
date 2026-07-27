@@ -84,6 +84,90 @@ export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
 
         <button
           onClick={nextSlide}
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Play, ChevronLeft, ChevronRight } from 'lucide-react';
+
+export interface Movie {
+  id: string;
+  title: string;
+  duration?: string;
+  runtime?: string;
+  language?: string;
+  genre?: string[] | string;
+  description?: string;
+  director?: string;
+  posterUrl?: string | any;
+  heroUrl?: string | any;
+  views?: number;
+  likes?: number;
+  rating?: number;
+  uploadedAt?: any;
+  cast?: Array<{imageUrl?: string; name?: string;}>;
+  crew?: Array<{userId?: string; name?: string; role?: string}>;
+}
+
+export default function Hero({ featuredMovies }: { featuredMovies: Movie[] }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const router = useRouter();
+
+  // Auto-slide every 5 seconds
+  useEffect(() => {
+    if (featuredMovies.length === 0) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % featuredMovies.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [featuredMovies]);
+
+  const handlePlayClick = (movieId: string) => {
+    router.push(`/streaming/movie/${movieId}`);
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentIndex(index);
+  };
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev + 1) % featuredMovies.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev - 1 + featuredMovies.length) % featuredMovies.length);
+  };
+
+  if (featuredMovies.length === 0) {
+    return (
+      <div className="w-full h-[400px] bg-gradient-to-r from-purple-900/50 to-blue-900/50 rounded-2xl flex items-center justify-center">
+        <p className="text-white text-xl">No movies available</p>
+      </div>
+    );
+  }
+
+  const getCardPosition = (index: number) => {
+    const total = featuredMovies.length;
+    const offset = (index - currentIndex + total) % total;
+
+    if (offset === 0) return 'center';
+    if (offset === 1 || (total === 2 && offset === 1)) return 'right';
+    if (offset === total - 1) return 'left';
+    return 'hidden';
+  };
+
+  return (
+    <section className="w-full max-w-[1200px] mx-auto px-4 py-8">
+      <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] flex items-center justify-center">
+        
+        {/* Slides */}
+        {featuredMovies.map((movie, index) => {
+          const position = getCardPosition(index);
+          const genreText = Array.isArray(movie.genre) 
+            ? movie.genre.join(' • ') 
+            : movie.genre;
+
+          if (position === 'hidden') return null;
           className="absolute right-2 md:right-4 z-40 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-sm transition-all border border-white/20 hover:scale-110"
         >
           <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
