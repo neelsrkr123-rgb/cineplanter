@@ -16,11 +16,14 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 
-interface SearchUser {
+interface SearchResult {
   id: string;
   name: string;
   username?: string;
   photoURL?: string;
+  type: 'user' | 'movie';
+  subtitle?: string;
+  image?: string;
 }
 
 interface Notification {
@@ -44,7 +47,7 @@ export default function Navbar() {
   const [isUploadDropdownOpen, setIsUploadDropdownOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
@@ -197,86 +200,166 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // 🔥 UPDATED: Search both users and movies with case-insensitive
   useEffect(() => {
-    const fetchUsers = async () => {
-      if (!searchTerm.trim()) {
+    const fetchSearchResults = async () => {
+      const searchText = searchTerm.trim();
+      if (!searchText || searchText.length < 1) {
         setSearchResults([]);
         return;
       }
 
       setSearchLoading(true);
       try {
+        const results: SearchResult[] = [];
+        const searchLower = searchText.toLowerCase();
+
+        // 1. Search Users by name (case insensitive using Firestore range)
         const usersRef = collection(db, 'users');
         
+        // Search by name (Firestore range query - case sensitive but works for exact matches)
         const nameQuery = query(
           usersRef,
-          where('name', '>=', searchTerm),
-          where('name', '<=', searchTerm + '\uf8ff'),
+          where('name', '>=', searchText),
+          where('name', '<=', searchText + '\uf8ff'),
           orderBy('name'),
           limit(10)
         );
         
         const nameSnapshot = await getDocs(nameQuery);
-        const users: SearchUser[] = [];
-        
         nameSnapshot.forEach((doc) => {
           const data = doc.data();
-          users.push({
-            id: doc.id,
-            name: data.name || data.displayName || '',
-            username: data.username || '',
-            photoURL: data.avatar || data.photoURL || ''
-          });
+          const name = data.name || data.displayName || '';
+          // Check if name matches (case insensitive)
+          if (name.toLowerCase().includes(searchLower) || name.toLowerCase().startsWith(searchLower)) {
+            results.push({
+              id: doc.id,
+              name: name,
+              username: data.username || '',
+              photoURL: data.avatar || data.photoURL || '',
+              type: 'user',
+              subtitle: data.username ? `@${data.username}` : '',
+              image: data.avatar || data.photoURL || ''
+            });
+          }
         });
 
-        if (users.length === 0) {
-          const usernameQuery = query(
-            usersRef,
-            where('username', '>=', searchTerm),
-            where('username', '<=', searchTerm + '\uf8ff'),
-            limit(10)
-          );
-          const usernameSnapshot = await getDocs(usernameQuery);
-          usernameSnapshot.forEach((doc) => {
+        // 2. Search Movies by title
+        const moviesRef = collection(db, 'movies');
+        const movieQuery = query(
+          moviesRef,
+          where('title', '>=', searchText),
+          where('title', '<=', searchText + '\uf8ff'),
+          orderBy('title'),
+          limit(10)
+        );
+        
+        const movieSnapshot = await getDocs(movieQuery);
+        movieSnapshot.forEach((doc) => {
+          const data = doc.data();
+          const title = data.title || '';
+          // Check if title matches (case insensitive)
+          if (title.toLowerCase().includes(searchLower) || title.toLowerCase().startsWith(searchLower)) {
+            // Avoid duplicates
+            if (!results.some(r => r.id === doc.id && r.type === 'movie')) {
+              results.push({
+                id: doc.id,
+                name: title,
+                photoURL: data.posterUrl || data.heroUrl || '',
+                type: 'movie',
+                subtitle: data.language || data.genre?.join(', ') || '',
+                image: data.posterUrl || data.heroUrl || ''
+              });
+            }
+          }
+        });
+
+        // 3. If not enough results, do a broader case-insensitive search
+        if (results.length < 8) {
+          // Get all users and movies (limited to 50 each)
+          const allUsersSnapshot = await getDocs(query(usersRef, limit(50)));
+          const allMoviesSnapshot = await getDocs(query(moviesRef, limit(50)));
+          
+          // Search users case-insensitively
+          allUsersSnapshot.forEach((doc) => {
             const data = doc.data();
-            users.push({
-              id: doc.id,
-              name: data.name || data.displayName || '',
-              username: data.username || '',
-              photoURL: data.avatar || data.photoURL || ''
-            });
+            const name = (data.name || data.displayName || '').toLowerCase();
+            const username = (data.username || '').toLowerCase();
+            
+            if ((name.includes(searchLower) || username.includes(searchLower)) && 
+                !results.some(r => r.id === doc.id && r.type === 'user')) {
+              results.push({
+                id: doc.id,
+                name: data.name || data.displayName || '',
+                username: data.username || '',
+                photoURL: data.avatar || data.photoURL || '',
+                type: 'user',
+                subtitle: data.username ? `@${data.username}` : '',
+                image: data.avatar || data.photoURL || ''
+              });
+            }
+          });
+          
+          // Search movies case-insensitively
+          allMoviesSnapshot.forEach((doc) => {
+            const data = doc.data();
+            const title = (data.title || '').toLowerCase();
+            
+            if (title.includes(searchLower) && 
+                !results.some(r => r.id === doc.id && r.type === 'movie')) {
+              results.push({
+                id: doc.id,
+                name: data.title || '',
+                photoURL: data.posterUrl || data.heroUrl || '',
+                type: 'movie',
+                subtitle: data.language || data.genre?.join(', ') || '',
+                image: data.posterUrl || data.heroUrl || ''
+              });
+            }
           });
         }
+
+        // Sort: users first, then movies
+        results.sort((a, b) => {
+          if (a.type === 'user' && b.type === 'movie') return -1;
+          if (a.type === 'movie' && b.type === 'user') return 1;
+          return 0;
+        });
+
+        setSearchResults(results.slice(0, 15));
         
-        setSearchResults(users);
       } catch (error) {
-        console.error('Error searching users:', error);
+        console.error('Error searching:', error);
       } finally {
         setSearchLoading(false);
       }
     };
 
     const timeoutId = setTimeout(() => {
-      fetchUsers();
+      fetchSearchResults();
     }, 300);
 
     return () => clearTimeout(timeoutId);
   }, [searchTerm]);
 
-  const handleUserClick = (userId: string) => {
-    router.push(`/profile/${userId}`);
+  const handleResultClick = (result: SearchResult) => {
+    if (result.type === 'user') {
+      router.push(`/profile/${result.id}`);
+    } else if (result.type === 'movie') {
+      router.push(`/streaming/movie/${result.id}`);
+    }
     setIsSearchExpanded(false);
     setSearchTerm('');
     setSearchResults([]);
   };
 
-  // UPDATED: Only Create Post and Upload Movie
+  // Upload Menu Items
   const uploadMenuItems = [
     { name: 'Create Post', href: '/community', icon: Users },
     { name: 'Upload Movie', href: '/upload/movie', icon: Film },
   ];
 
-  // UPDATED: Only Explore, Movies, Community
+  // Nav Links
   const navLinks = [
     { name: 'Explore', href: '/', icon: Compass },
     { name: 'Movies', href: '/movies', icon: Clapperboard },
@@ -360,7 +443,7 @@ export default function Navbar() {
               </div>
             </Link>
 
-            {/* UPDATED: Only Explore, Movies, Community */}
+            {/* Navigation Links */}
             <div className="hidden lg:flex items-center gap-6 text-sm">
               {navLinks.map((link) => {
                 const isActive = pathname === link.href || pathname.startsWith(link.href + "/");
@@ -386,7 +469,7 @@ export default function Navbar() {
 
           {/* Right: Search + Icons + Profile */}
           <div className="flex items-center gap-2 relative">
-            {/* Search */}
+            {/* Search - UPDATED with movie results */}
             <div className="relative" ref={searchRef}>
               <div className={`flex items-center transition-all duration-300 ${isSearchExpanded ? 'bg-white/10 rounded-full' : ''}`}>
                 {isSearchExpanded && (
@@ -394,7 +477,7 @@ export default function Navbar() {
                     <input
                       ref={searchInputRef}
                       type="text"
-                      placeholder="Search users..."
+                      placeholder="Search users or movies..."
                       className="pl-4 pr-2 py-1.5 bg-transparent text-white placeholder-gray-400 focus:outline-none w-56 text-sm"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -414,42 +497,78 @@ export default function Navbar() {
                 </button>
               </div>
 
-              {/* Search Results */}
+              {/* Search Results - Updated with both users and movies */}
               <AnimatePresence>
                 {isSearchExpanded && searchResults.length > 0 && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="absolute top-full left-0 mt-2 w-72 bg-gray-900/95 backdrop-blur-lg border border-white/10 rounded-xl shadow-lg z-50 overflow-hidden"
+                    className="absolute top-full left-0 mt-2 w-72 bg-gray-900/95 backdrop-blur-lg border border-white/10 rounded-xl shadow-lg z-50 overflow-hidden max-h-96 overflow-y-auto"
                   >
-                    {searchResults.map((result) => (
-                      <button
-                        key={result.id}
-                        onClick={() => handleUserClick(result.id)}
-                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-left"
-                      >
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center overflow-hidden flex-shrink-0">
-                          {result.photoURL ? (
-                            <img src={result.photoURL} alt={result.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <User className="w-5 h-5 text-white" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white font-medium text-sm truncate">{result.name}</p>
-                          {result.username && (
-                            <p className="text-gray-400 text-xs truncate">@{result.username}</p>
-                          )}
-                        </div>
-                      </button>
-                    ))}
+                    {/* User Results */}
+                    {searchResults.filter(r => r.type === 'user').length > 0 && (
+                      <>
+                        <div className="px-4 py-1 text-xs text-gray-500 border-b border-white/5">Users</div>
+                        {searchResults.filter(r => r.type === 'user').map((result) => (
+                          <button
+                            key={`user-${result.id}`}
+                            onClick={() => handleResultClick(result)}
+                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-left"
+                          >
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                              {result.photoURL ? (
+                                <img src={result.photoURL} alt={result.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <User className="w-5 h-5 text-white" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white font-medium text-sm truncate">{result.name}</p>
+                              {result.username && (
+                                <p className="text-gray-400 text-xs truncate">@{result.username}</p>
+                              )}
+                            </div>
+                            <span className="text-[10px] text-purple-400 bg-purple-500/20 px-2 py-0.5 rounded-full">User</span>
+                          </button>
+                        ))}
+                      </>
+                    )}
+
+                    {/* Movie Results */}
+                    {searchResults.filter(r => r.type === 'movie').length > 0 && (
+                      <>
+                        <div className="px-4 py-1 text-xs text-gray-500 border-b border-white/5 border-t border-white/5">Movies</div>
+                        {searchResults.filter(r => r.type === 'movie').map((result) => (
+                          <button
+                            key={`movie-${result.id}`}
+                            onClick={() => handleResultClick(result)}
+                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-left"
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+                              {result.image ? (
+                                <img src={result.image} alt={result.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <Film className="w-5 h-5 text-gray-400" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white font-medium text-sm truncate">{result.name}</p>
+                              {result.subtitle && (
+                                <p className="text-gray-400 text-xs truncate">{result.subtitle}</p>
+                              )}
+                            </div>
+                            <span className="text-[10px] text-blue-400 bg-blue-500/20 px-2 py-0.5 rounded-full">Movie</span>
+                          </button>
+                        ))}
+                      </>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            {/* UPDATED: Upload Dropdown - Only Create Post and Upload Movie */}
+            {/* Upload Dropdown */}
             {user && (
               <div className="relative hidden md:block" ref={uploadRef}>
                 <button
@@ -662,7 +781,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Menu Items - UPDATED */}
+        {/* Mobile Menu Items */}
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
@@ -672,7 +791,6 @@ export default function Navbar() {
               className="lg:hidden bg-gray-900/95 backdrop-blur-lg border-t border-white/10 mt-3 rounded-b-xl overflow-hidden"
             >
               <div className="grid grid-cols-2 gap-4 p-4">
-                {/* UPDATED: Only Explore, Movies, Community */}
                 {navLinks.map((link) => {
                   const isActive = pathname.startsWith(link.href);
                   const Icon = link.icon;
@@ -691,7 +809,6 @@ export default function Navbar() {
                   );
                 })}
                 <div className="col-span-2 mt-2 pt-2 border-t border-white/10"></div>
-                {/* UPDATED: Only Create Post and Upload Movie */}
                 {uploadMenuItems.map((item) => {
                   const Icon = item.icon;
                   return (
@@ -712,7 +829,7 @@ export default function Navbar() {
         </AnimatePresence>
       </nav>
 
-      {/* spacing - REDUCED from h-24 to h-16 */}
+      {/* spacing */}
       <div className="h-20"></div>
     </>
   );
