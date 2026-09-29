@@ -122,7 +122,7 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-purple-950 to-blue-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl flex flex-col lg:flex-row min-h-[700px] rounded-2xl overflow-hidden shadow-2xl relative">
+      <div className="w-full max-w-4xl flex flex-col lg:flex-row min-h-0 lg:min-h-[700px] rounded-2xl overflow-hidden shadow-2xl relative">
         
         {/* Close Button */}
         <button
@@ -133,7 +133,7 @@ export default function AuthPage() {
         </button>
 
         {/* Left Side - Info Slideshow */}
-        <div className="w-full lg:w-3/5 bg-gradient-to-br from-purple-900/80 to-blue-900/80 p-6 lg:p-8 relative overflow-hidden">
+        <div className="hidden lg:block w-full lg:w-3/5 lg:h-auto bg-gradient-to-br from-purple-900/80 to-blue-900/80 p-6 lg:p-8 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 to-blue-900/20">
             <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,rgba(74,0,224,0.15)_0%,transparent_40%),radial-gradient(circle_at_40%_70%,rgba(43,126,226,0.1)_0%,transparent_40%)] opacity-70"></div>
           </div>
@@ -171,7 +171,7 @@ export default function AuthPage() {
         </div>
 
         {/* Right Side - Auth Panel */}
-        <div className="w-full lg:w-3/5 bg-gray-900/70 backdrop-blur-md p-6 lg:p-10 relative overflow-hidden">
+        <div className="w-full lg:w-3/5 h-[450px] lg:h-auto bg-gray-900/70 backdrop-blur-md p-6 lg:p-10 relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(74,0,224,0.1)_0%,transparent_40%),radial-gradient(circle_at_20%_80%,rgba(43,126,226,0.1)_0%,transparent_40%)]"></div>
           
           <div className="relative z-10 h-full flex flex-col">
