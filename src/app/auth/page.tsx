@@ -171,7 +171,7 @@ export default function AuthPage() {
         </div>
 
         {/* Right Side - Auth Panel */}
-        <div className="w-full lg:w-3/5 h-[450px] lg:h-auto bg-gray-900/70 backdrop-blur-md p-6 lg:p-10 relative overflow-hidden">
+        <div className="w-full lg:w-3/5 h-[700px] lg:h-auto bg-gray-900/70 backdrop-blur-md p-6 lg:p-10 relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(74,0,224,0.1)_0%,transparent_40%),radial-gradient(circle_at_20%_80%,rgba(43,126,226,0.1)_0%,transparent_40%)]"></div>
           
           <div className="relative z-10 h-full flex flex-col">
