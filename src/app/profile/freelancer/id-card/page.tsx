@@ -17,9 +17,9 @@ export default function IDCardPage() {
   const router = useRouter()
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [downloading, setDownloading] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
 
-  // ✅ Safe userId — user.id from UserData type
   const userId = user?.id || (user as any)?.uid
   const userName = user?.name || "User"
 
@@ -28,9 +28,7 @@ export default function IDCardPage() {
       router.push('/auth')
       return
     }
-    if (user && userId) {
-      loadUserData()
-    }
+    if (user && userId) loadUserData()
   }, [user, isLoading, userId])
 
   const loadUserData = async () => {
@@ -38,14 +36,9 @@ export default function IDCardPage() {
       setLoading(false)
       return
     }
-
     try {
-      const userRef = doc(db, 'users', userId)
-      const userSnap = await getDoc(userRef)
-
-      if (userSnap.exists()) {
-        setProfile(userSnap.data())
-      }
+      const userSnap = await getDoc(doc(db, 'users', userId))
+      if (userSnap.exists()) setProfile(userSnap.data())
     } catch (error) {
       console.error('Error loading user data:', error)
     } finally {
@@ -53,82 +46,73 @@ export default function IDCardPage() {
     }
   }
 
+  // ✅ Download as PDF
   const downloadPDF = async () => {
     if (!cardRef.current) return
+    setDownloading(true)
 
     try {
       const card = cardRef.current
 
-      // Front side
       card.setAttribute('data-flipped', 'false')
-      await new Promise(resolve => setTimeout(resolve, 200))
+      await new Promise(r => setTimeout(r, 250))
       const frontCanvas = await html2canvas(card, {
         scale: 3,
         backgroundColor: '#ffffff',
         logging: false,
-        allowTaint: true,
         useCORS: true
       })
 
-      // Back side
       card.setAttribute('data-flipped', 'true')
-      await new Promise(resolve => setTimeout(resolve, 200))
+      await new Promise(r => setTimeout(r, 250))
       const backCanvas = await html2canvas(card, {
         scale: 3,
         backgroundColor: '#ffffff',
         logging: false,
-        allowTaint: true,
         useCORS: true
       })
 
       card.setAttribute('data-flipped', 'false')
 
-      // PDF — A7 size
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: [74, 105]
       })
 
-      const frontImgData = frontCanvas.toDataURL('image/png')
-      pdf.addImage(frontImgData, 'PNG', 0, 0, 74, 105, undefined, 'FAST')
-
+      pdf.addImage(frontCanvas.toDataURL('image/png'), 'PNG', 0, 0, 74, 105, undefined, 'FAST')
       pdf.addPage([74, 105])
-      const backImgData = backCanvas.toDataURL('image/png')
-      pdf.addImage(backImgData, 'PNG', 0, 0, 74, 105, undefined, 'FAST')
+      pdf.addImage(backCanvas.toDataURL('image/png'), 'PNG', 0, 0, 74, 105, undefined, 'FAST')
 
-      pdf.save(`${profile?.name || userName || 'freelancer'}-id-card.pdf`)
-
+      pdf.save(`${profile?.name || userName}-id-card.pdf`)
     } catch (error) {
       console.error('Error generating PDF:', error)
+    } finally {
+      setDownloading(false)
     }
   }
 
-  // ✅ Share — public route এ point করবে (অন্য ডিভাইসেও খুলবে)
+  // ✅ Share — public route
   const shareCard = async () => {
     if (!userId) return
-
     const publicUrl = `${window.location.origin}/profile/${userId}/id-card`
-
     try {
       if (navigator.share) {
         await navigator.share({
-          title: `${profile?.name || userName}'s Freelancer ID Card`,
-          text: `Check out my CinePlanter freelancer profile!`,
+          title: `${profile?.name || userName}'s Freelancer ID`,
+          text: `Check out my freelancer profile on CinePlanter!`,
           url: publicUrl
         })
       } else {
         await navigator.clipboard.writeText(publicUrl)
-        alert('Profile link copied to clipboard!')
+        alert('Profile link copied!')
       }
     } catch (error) {
       console.error('Error sharing:', error)
     }
   }
 
-  const printCard = () => {
-    window.print()
-  }
+  const printCard = () => window.print()
 
   if (isLoading || loading) {
     return (
@@ -140,57 +124,77 @@ export default function IDCardPage() {
 
   return (
     <>
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <Navbar />
-      </div>
+      <div className="fixed top-0 left-0 right-0 z-50"><Navbar /></div>
 
       <div className="min-h-screen bg-[#050505] pt-24 relative">
+        {/* Background glow */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-purple-900/10 blur-[120px] rounded-full" />
           <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] bg-blue-900/10 blur-[120px] rounded-full" />
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-6">
-          <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
+          {/* ✅ Only close button at top */}
+          <div className="flex items-center mb-6">
             <button
               onClick={() => router.back()}
               className="p-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl hover:bg-white/10 transition-colors"
+              aria-label="Close"
             >
               <X size={20} className="text-gray-300" />
             </button>
-
-            <div className="flex gap-2 sm:gap-3 flex-wrap">
-              <button
-                onClick={shareCard}
-                className="flex items-center gap-2 px-4 sm:px-5 py-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm font-medium text-gray-300"
-              >
-                <Share2 size={18} />
-                <span>Share</span>
-              </button>
-              <button
-                onClick={downloadPDF}
-                className="flex items-center gap-2 px-4 sm:px-5 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all text-sm font-medium text-white"
-              >
-                <Download size={18} />
-                <span>Download</span>
-              </button>
-              <button
-                onClick={printCard}
-                className="flex items-center gap-2 px-4 sm:px-5 py-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm font-medium text-gray-300"
-              >
-                <Printer size={18} />
-                <span>Print</span>
-              </button>
-            </div>
           </div>
 
+          {/* Card */}
           <div className="flex justify-center">
             <div ref={cardRef}>
-              <FreelancerIDCard profile={profile} />
+              <FreelancerIDCard profile={profile} userId={userId} showActions={false} />
             </div>
           </div>
 
-          <p className="text-center text-sm text-gray-500 mt-8">
+          {/* ✅ Action Buttons BELOW the card — Share, Download, Print */}
+          <div className="flex justify-center gap-3 sm:gap-4 mt-8 flex-wrap">
+            <button
+              onClick={shareCard}
+              className="flex items-center gap-2 px-5 py-2.5 
+                         bg-white/5 backdrop-blur-sm border border-white/10 
+                         rounded-xl hover:bg-white/10 transition-colors 
+                         text-sm font-medium text-gray-200"
+            >
+              <Share2 size={16} />
+              <span>Share</span>
+            </button>
+
+            <button
+              onClick={downloadPDF}
+              disabled={downloading}
+              className="flex items-center gap-2 px-5 py-2.5 
+                         bg-gradient-to-r from-purple-600 to-pink-600 
+                         rounded-xl hover:from-purple-700 hover:to-pink-700 
+                         transition-all text-sm font-medium text-white 
+                         disabled:opacity-50 shadow-lg shadow-purple-500/20"
+            >
+              {downloading ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Download size={16} />
+              )}
+              <span>{downloading ? 'Downloading...' : 'Download'}</span>
+            </button>
+
+            <button
+              onClick={printCard}
+              className="flex items-center gap-2 px-5 py-2.5 
+                         bg-white/5 backdrop-blur-sm border border-white/10 
+                         rounded-xl hover:bg-white/10 transition-colors 
+                         text-sm font-medium text-gray-200"
+            >
+              <Printer size={16} />
+              <span>Print</span>
+            </button>
+          </div>
+
+          <p className="text-center text-sm text-gray-500 mt-6">
             A7 size (74mm × 105mm) • Double-sided • Printable
           </p>
         </div>
@@ -198,15 +202,16 @@ export default function IDCardPage() {
 
       <style jsx global>{`
         @media print {
-          body * {
-            visibility: hidden;
+          body * { visibility: hidden; }
+          .flippable-card, .flippable-card * { visibility: visible; }
+          .flippable-card {
+            position: absolute;
+            left: 0;
+            top: 0;
+            margin: 0;
+            padding: 0;
           }
-          .print\\:block {
-            display: block !important;
-          }
-          nav, button, .action-buttons {
-            display: none !important;
-          }
+          nav, button { display: none !important; }
         }
       `}</style>
     </>

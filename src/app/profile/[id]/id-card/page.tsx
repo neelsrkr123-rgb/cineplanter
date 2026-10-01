@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react"
 import Navbar from "#/components/Navbar"
-import FlippableIDCard from "#/components/profile/FreelancerIDCard"
+import FreelancerIDCard from "#/components/profile/FreelancerIDCard"
 import { db } from "#/lib/firebase"
 import { doc, getDoc } from "firebase/firestore"
 import { useRouter, useParams } from "next/navigation"
@@ -11,7 +11,6 @@ import { ArrowLeft, Share2 } from 'lucide-react'
 
 export default function PublicIDCardPage() {
   const router = useRouter()
-  // ✅ useParams() দিয়ে সরাসরি id পাওয়া যায় — Promise unwrap লাগে না
   const params = useParams()
   const userId = params?.id as string
 
@@ -28,9 +27,7 @@ export default function PublicIDCardPage() {
 
     const loadProfile = async () => {
       try {
-        const userRef = doc(db, 'users', userId)
-        const userSnap = await getDoc(userRef)
-
+        const userSnap = await getDoc(doc(db, 'users', userId))
         if (userSnap.exists()) {
           setProfile(userSnap.data())
         } else {
@@ -43,24 +40,23 @@ export default function PublicIDCardPage() {
         setLoading(false)
       }
     }
-
     loadProfile()
   }, [userId])
 
+  // ✅ Only share
   const shareCard = async () => {
     if (!userId) return
     const publicUrl = `${window.location.origin}/profile/${userId}/id-card`
-
     try {
       if (navigator.share) {
         await navigator.share({
-          title: `${profile?.name}'s Freelancer ID Card`,
-          text: `Check out ${profile?.name}'s freelancer ID card on CinePlanter!`,
+          title: `${profile?.name}'s Freelancer ID`,
+          text: `Check out ${profile?.name}'s freelancer profile on CinePlanter!`,
           url: publicUrl
         })
       } else {
         await navigator.clipboard.writeText(publicUrl)
-        alert('Link copied to clipboard!')
+        alert('Profile link copied!')
       }
     } catch (error) {
       console.error('Error sharing:', error)
@@ -102,28 +98,38 @@ export default function PublicIDCardPage() {
       <Navbar />
 
       <main className="relative z-10 max-w-4xl mx-auto pt-24 px-6 pb-10">
-        <div className="flex items-center justify-between mb-8">
+        {/* ✅ Only back button at top */}
+        <div className="flex items-center mb-6">
           <button
             onClick={() => router.back()}
             className="p-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl hover:bg-white/10 transition-colors"
+            aria-label="Back"
           >
             <ArrowLeft size={20} className="text-gray-300" />
           </button>
+        </div>
 
+        {/* Card */}
+        <div className="flex justify-center">
+          <FreelancerIDCard profile={profile} userId={userId} showActions={false} />
+        </div>
+
+        {/* ✅ Only Share button BELOW the card */}
+        <div className="flex justify-center mt-8">
           <button
             onClick={shareCard}
-            className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all text-sm font-medium text-white"
+            className="flex items-center gap-2 px-6 py-2.5 
+                       bg-gradient-to-r from-purple-600 to-pink-600 
+                       rounded-xl hover:from-purple-700 hover:to-pink-700 
+                       transition-all text-sm font-medium text-white 
+                       shadow-lg shadow-purple-500/20"
           >
-            <Share2 size={18} />
+            <Share2 size={16} />
             <span>Share ID Card</span>
           </button>
         </div>
 
-        <div className="flex justify-center">
-          <FlippableIDCard profile={profile} />
-        </div>
-
-        <p className="text-center text-sm text-gray-500 mt-8">
+        <p className="text-center text-sm text-gray-500 mt-6">
           A7 size (74mm × 105mm) • Tap to flip • Double-sided
         </p>
       </main>
