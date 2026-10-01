@@ -19,8 +19,8 @@ export default function IDCardPage() {
   const [loading, setLoading] = useState(true)
   const cardRef = useRef<HTMLDivElement>(null)
 
-  // ✅ userId safely derive
-  const userId = user?.uid || user?.id
+  // ✅ Safe userId derivation
+  const userId = (user as any)?.uid || user?.id
   const userName = user?.name || "User"
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function IDCardPage() {
     try {
       const userRef = doc(db, 'users', userId)
       const userSnap = await getDoc(userRef)
-      
+
       if (userSnap.exists()) {
         setProfile(userSnap.data())
       }
@@ -59,7 +59,7 @@ export default function IDCardPage() {
 
     try {
       const card = cardRef.current
-      
+
       // Front side capture
       card.setAttribute('data-flipped', 'false')
       await new Promise(resolve => setTimeout(resolve, 200))
@@ -106,16 +106,22 @@ export default function IDCardPage() {
     }
   }
 
+  // ✅ Public ID card URL শেয়ার করুন (অন্য ডিভাইসে খুলবে)
   const shareCard = async () => {
+    if (!userId) return
+
+    // ✅ সঠিক public route: /profile/{userId}/id-card
+    const publicUrl = `${window.location.origin}/profile/${userId}/id-card`
+
     try {
       if (navigator.share) {
         await navigator.share({
           title: `${profile?.name || userName}'s Freelancer ID Card`,
           text: `Check out my CinePlanter freelancer profile!`,
-          url: `${window.location.origin}/freelancer/${userId}`
+          url: publicUrl
         })
       } else {
-        navigator.clipboard.writeText(`${window.location.origin}/freelancer/${userId}`)
+        await navigator.clipboard.writeText(publicUrl)
         alert('Profile link copied to clipboard!')
       }
     } catch (error) {
@@ -143,8 +149,8 @@ export default function IDCardPage() {
 
       <div className="min-h-screen bg-[#050505] pt-24 relative">
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-purple-900/10 blur-[120px] rounded-full"/>
-          <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] bg-blue-900/10 blur-[120px] rounded-full"/>
+          <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-purple-900/10 blur-[120px] rounded-full" />
+          <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] bg-blue-900/10 blur-[120px] rounded-full" />
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-6">
