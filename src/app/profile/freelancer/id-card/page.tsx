@@ -1,4 +1,4 @@
-// app/profile/freelancer/id-card/page.tsx
+// src/app/profile/freelancer/id-card/page.tsx
 'use client'
 
 import { useState, useEffect, useRef } from "react"
@@ -19,8 +19,8 @@ export default function IDCardPage() {
   const [loading, setLoading] = useState(true)
   const cardRef = useRef<HTMLDivElement>(null)
 
-  // ✅ Safe userId derivation
-  const userId = (user as any)?.uid || user?.id
+  // ✅ Safe userId — user.id from UserData type
+  const userId = user?.id || (user as any)?.uid
   const userName = user?.name || "User"
 
   useEffect(() => {
@@ -28,7 +28,6 @@ export default function IDCardPage() {
       router.push('/auth')
       return
     }
-
     if (user && userId) {
       loadUserData()
     }
@@ -60,7 +59,7 @@ export default function IDCardPage() {
     try {
       const card = cardRef.current
 
-      // Front side capture
+      // Front side
       card.setAttribute('data-flipped', 'false')
       await new Promise(resolve => setTimeout(resolve, 200))
       const frontCanvas = await html2canvas(card, {
@@ -71,7 +70,7 @@ export default function IDCardPage() {
         useCORS: true
       })
 
-      // Back side capture
+      // Back side
       card.setAttribute('data-flipped', 'true')
       await new Promise(resolve => setTimeout(resolve, 200))
       const backCanvas = await html2canvas(card, {
@@ -82,10 +81,9 @@ export default function IDCardPage() {
         useCORS: true
       })
 
-      // Reset to front
       card.setAttribute('data-flipped', 'false')
 
-      // Create PDF - A7 size (74mm x 105mm)
+      // PDF — A7 size
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -106,11 +104,10 @@ export default function IDCardPage() {
     }
   }
 
-  // ✅ Public ID card URL শেয়ার করুন (অন্য ডিভাইসে খুলবে)
+  // ✅ Share — public route এ point করবে (অন্য ডিভাইসেও খুলবে)
   const shareCard = async () => {
     if (!userId) return
 
-    // ✅ সঠিক public route: /profile/{userId}/id-card
     const publicUrl = `${window.location.origin}/profile/${userId}/id-card`
 
     try {
@@ -154,7 +151,7 @@ export default function IDCardPage() {
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-6">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
             <button
               onClick={() => router.back()}
               className="p-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl hover:bg-white/10 transition-colors"
@@ -162,24 +159,24 @@ export default function IDCardPage() {
               <X size={20} className="text-gray-300" />
             </button>
 
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3 flex-wrap">
               <button
                 onClick={shareCard}
-                className="flex items-center gap-2 px-5 py-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm font-medium text-gray-300"
+                className="flex items-center gap-2 px-4 sm:px-5 py-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm font-medium text-gray-300"
               >
                 <Share2 size={18} />
                 <span>Share</span>
               </button>
               <button
                 onClick={downloadPDF}
-                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all text-sm font-medium text-white"
+                className="flex items-center gap-2 px-4 sm:px-5 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all text-sm font-medium text-white"
               >
                 <Download size={18} />
                 <span>Download</span>
               </button>
               <button
                 onClick={printCard}
-                className="flex items-center gap-2 px-5 py-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm font-medium text-gray-300"
+                className="flex items-center gap-2 px-4 sm:px-5 py-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-sm font-medium text-gray-300"
               >
                 <Printer size={18} />
                 <span>Print</span>
