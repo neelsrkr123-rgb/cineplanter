@@ -43,7 +43,6 @@ export default function PublicIDCardPage() {
     loadProfile()
   }, [userId])
 
-  // ✅ Only share
   const shareCard = async () => {
     if (!userId) return
     const publicUrl = `${window.location.origin}/profile/${userId}/id-card`
@@ -98,7 +97,7 @@ export default function PublicIDCardPage() {
       <Navbar />
 
       <main className="relative z-10 max-w-4xl mx-auto pt-24 px-6 pb-10">
-        {/* ✅ Only back button at top */}
+        {/* Back button at top */}
         <div className="flex items-center mb-6">
           <button
             onClick={() => router.back()}
@@ -114,15 +113,11 @@ export default function PublicIDCardPage() {
           <FreelancerIDCard profile={profile} userId={userId} showActions={false} />
         </div>
 
-        {/* ✅ Only Share button BELOW the card */}
+        {/* Only Share button BELOW the card */}
         <div className="flex justify-center mt-8">
           <button
             onClick={shareCard}
-            className="flex items-center gap-2 px-6 py-2.5 
-                       bg-gradient-to-r from-purple-600 to-pink-600 
-                       rounded-xl hover:from-purple-700 hover:to-pink-700 
-                       transition-all text-sm font-medium text-white 
-                       shadow-lg shadow-purple-500/20"
+            className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all text-sm font-medium text-white shadow-lg shadow-purple-500/20"
           >
             <Share2 size={16} />
             <span>Share ID Card</span>
