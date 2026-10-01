@@ -1,4 +1,4 @@
-// context/AuthContext.tsx
+// src/context/AuthContext.tsx
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from "react";
@@ -37,12 +37,15 @@ interface UserData {
   skills: string[];
   followers: string[];
   following: string[];
+
+  // ✅ All social fields optional
   socials: {
-    instagram: string;
-    youtube: string;
+    instagram?: string;
+    youtube?: string;
     twitter?: string;
     facebook?: string;
   };
+
   joinedInterests?: string[];
   savedPosts?: string[];
   notInterestedPosts?: string[];
@@ -71,12 +74,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Refresh user data from Firestore
+  // ✅ FIXED: refreshUser uses auth.currentUser (avoids stale closure)
   const refreshUser = async () => {
-    if (!user?.id) return;
-    
+    const currentUid = auth.currentUser?.uid;
+    if (!currentUid) return;
+
     try {
-      const userRef = doc(db, "users", user.id);
+      const userRef = doc(db, "users", currentUid);
       const snap = await getDoc(userRef);
       if (snap.exists()) {
         setUser({ id: snap.id, ...snap.data() } as UserData);
@@ -86,14 +90,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Load user data from Firestore
+  // Load user data
   const loadUserData = async (firebaseUser: FirebaseUser): Promise<UserData | null> => {
     try {
       const userRef = doc(db, "users", firebaseUser.uid);
       let snap = await getDoc(userRef);
 
       if (!snap.exists()) {
-        // Create default profile for new user
         const newUserData = {
           id: firebaseUser.uid,
           name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || "User",
@@ -128,14 +131,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           lastSeen: serverTimestamp(),
           createdAt: Date.now(),
         };
-        
+
         await setDoc(userRef, newUserData);
         snap = await getDoc(userRef);
       }
-      
-      // Also update online status
+
+      // Update online status
       await updateDoc(userRef, { online: true, lastSeen: serverTimestamp() });
-      
+
       return { id: snap.id, ...snap.data() } as UserData;
     } catch (error) {
       console.error("Error loading user data:", error);
@@ -146,45 +149,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setIsLoading(true);
-      
+
       if (firebaseUser) {
         const userData = await loadUserData(firebaseUser);
         setUser(userData);
       } else {
         setUser(null);
       }
-      
+
       setIsLoading(false);
     });
 
-    // Update online status when tab closes
+    // ✅ FIXED: use auth.currentUser inside handler
     const handleBeforeUnload = () => {
-      if (user?.id) {
-        const userRef = doc(db, "users", user.id);
-        updateDoc(userRef, { online: false }).catch(console.error);
+      const currentUid = auth.currentUser?.uid;
+      if (currentUid) {
+        updateDoc(doc(db, "users", currentUid), { online: false }).catch(console.error);
       }
     };
-    
+
     window.addEventListener("beforeunload", handleBeforeUnload);
-    
+
     return () => {
       unsubscribe();
       window.removeEventListener("beforeunload", handleBeforeUnload);
-      
-      // Set offline when component unmounts
-      if (user?.id) {
-        const userRef = doc(db, "users", user.id);
-        updateDoc(userRef, { online: false }).catch(console.error);
+
+      const currentUid = auth.currentUser?.uid;
+      if (currentUid) {
+        updateDoc(doc(db, "users", currentUid), { online: false }).catch(console.error);
       }
     };
   }, []);
 
-  // Update user data in Firestore
+  // ✅ FIXED: updateUserData uses auth.currentUser
   const updateUserData = async (data: Partial<UserData>) => {
-    if (!user?.id) throw new Error("Not authenticated");
-    
+    const currentUid = auth.currentUser?.uid;
+    if (!currentUid) throw new Error("Not authenticated");
+
     try {
-      const userRef = doc(db, "users", user.id);
+      const userRef = doc(db, "users", currentUid);
       await updateDoc(userRef, data);
       setUser((prev) => prev ? { ...prev, ...data } : null);
       return true;
@@ -194,22 +197,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Update avatar
+  // ✅ FIXED: updateAvatar uses auth.currentUser
   const updateAvatar = async (file: File): Promise<string> => {
-    if (!user?.id) throw new Error("Not authenticated");
-    
+    const currentUid = auth.currentUser?.uid;
+    if (!currentUid) throw new Error("Not authenticated");
+
     try {
-      const storageRef = ref(storage, `avatars/${user.id}/${Date.now()}_${file.name}`);
+      const storageRef = ref(storage, `avatars/${currentUid}/${Date.now()}_${file.name}`);
       const snap = await uploadBytes(storageRef, file);
       const url = await getDownloadURL(snap.ref);
-      
-      const userRef = doc(db, "users", user.id);
+
+      const userRef = doc(db, "users", currentUid);
       await updateDoc(userRef, { avatar: url });
-      
+
       if (auth.currentUser) {
         await updateProfile(auth.currentUser, { photoURL: url });
       }
-      
+
       setUser((prev) => prev ? { ...prev, avatar: url } : null);
       return url;
     } catch (err) {
@@ -218,7 +222,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // 🔥 FIXED: Login with Google
+  // Login with Google
   const loginWithGoogle = async (): Promise<boolean> => {
     const provider = new GoogleAuthProvider();
     try {
@@ -227,8 +231,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return true;
     } catch (err: any) {
       console.error("Google login error:", err);
-      
-      // Handle specific errors
+
       if (err.code === 'auth/popup-closed-by-user') {
         console.log("Popup closed by user");
       } else if (err.code === 'auth/cancelled-popup-request') {
@@ -251,15 +254,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Register new user
-  const register = async ({ name, email, password }: { name: string; email: string; password: string; }): Promise<boolean> => {
+  // Register
+  const register = async ({ name, email, password }: { name: string; email: string; password: string }): Promise<boolean> => {
     try {
       const res = await createUserWithEmailAndPassword(auth, email, password);
-      
+
       if (auth.currentUser) {
         await updateProfile(auth.currentUser, { displayName: name });
       }
-      
+
       const newUserData = {
         id: res.user.uid,
         name: name,
@@ -294,10 +297,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         lastSeen: serverTimestamp(),
         createdAt: Date.now(),
       };
-      
+
       const userRef = doc(db, "users", res.user.uid);
       await setDoc(userRef, newUserData);
-      
+
       return true;
     } catch (err) {
       console.error("Registration error:", err);
@@ -307,8 +310,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Logout
   const logout = async (): Promise<void> => {
-    if (user?.id) {
-      const userRef = doc(db, "users", user.id);
+    const currentUid = auth.currentUser?.uid;
+    if (currentUid) {
+      const userRef = doc(db, "users", currentUid);
       await updateDoc(userRef, { online: false }).catch(console.error);
     }
     await signOut(auth);
