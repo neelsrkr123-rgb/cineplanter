@@ -97,7 +97,7 @@ export default function PublicIDCardPage() {
       <Navbar />
 
       <main className="relative z-10 max-w-4xl mx-auto pt-24 px-6 pb-10">
-        {/* Back button at top */}
+        {/* Back button */}
         <div className="flex items-center mb-6">
           <button
             onClick={() => router.back()}
@@ -108,12 +108,12 @@ export default function PublicIDCardPage() {
           </button>
         </div>
 
-        {/* Card */}
+        {/* Card — ✅ showActions removed */}
         <div className="flex justify-center">
-          <FreelancerIDCard profile={profile} userId={userId} showActions={false} />
+          <FreelancerIDCard profile={profile} userId={userId} />
         </div>
 
-        {/* Only Share button BELOW the card */}
+        {/* Only Share button */}
         <div className="flex justify-center mt-8">
           <button
             onClick={shareCard}

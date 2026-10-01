@@ -82,7 +82,7 @@ export default function IDCardPage() {
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-6">
-          {/* Only close button at top */}
+          {/* Close button */}
           <div className="flex items-center mb-6">
             <button
               onClick={() => router.back()}
@@ -93,12 +93,12 @@ export default function IDCardPage() {
             </button>
           </div>
 
-          {/* Card */}
+          {/* Card — ✅ showActions removed */}
           <div className="flex justify-center">
-            <FreelancerIDCard profile={profile} userId={userId} showActions={false} />
+            <FreelancerIDCard profile={profile} userId={userId} />
           </div>
 
-          {/* ✅ Only Share button BELOW the card */}
+          {/* Only Share button */}
           <div className="flex justify-center mt-8">
             <button
               onClick={shareCard}
