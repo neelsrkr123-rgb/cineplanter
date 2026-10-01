@@ -109,9 +109,7 @@ export default function IDCardPage() {
             </button>
           </div>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            A7 size (74mm × 105mm) • Tap to flip • Double-sided
-          </p>
+          
         </div>
       </div>
     </>
