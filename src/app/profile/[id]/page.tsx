@@ -320,13 +320,13 @@ export default function PublicProfilePage() {
             )}
           </div>
 
-          {/* Avatar */}
+          {/* ✅ Avatar — larger size (96px → 128px) */}
           <div className="flex justify-center mb-4 mt-2">
-            <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-2xl border-2 border-white/10">
+            <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-2xl border-2 border-white/10">
               {profile.photoURL ? (
                 <img src={profile.photoURL} alt={profile.name} className="w-full h-full object-cover" />
               ) : (
-                <User size={36} className="text-white" />
+                <User size={48} className="text-white" />
               )}
             </div>
           </div>
