@@ -238,6 +238,9 @@ export default function PublicProfilePage() {
   const userRole = freelancerData.title || profile?.title || "";
   const isFreelancer = profile?.profileType === "freelancer";
 
+  // ✅ Single display name — username priority, else name
+  const displayName = profile?.username ? `@${profile.username}` : (profile?.name || "");
+
   const displayLocation = (() => {
     if (isFreelancer && freelancerData.location) return freelancerData.location;
     if (profile?.location) return profile.location;
@@ -273,13 +276,9 @@ export default function PublicProfilePage() {
 
       {/* ═══════════════════════════════════════════════════════════ */}
       {/* PROFILE PAGE ONLY — Full-page glass morph background        */}
-      {/* Covers the global gradient from globals.css                  */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-        {/* Solid dark base — override global gradient */}
         <div className="absolute inset-0 bg-[#050505]" />
-
-        {/* Glass morph blobs */}
         <div className="absolute -top-[15%] -left-[15%] w-[60%] h-[60%] bg-purple-900/25 blur-[140px] rounded-full" />
         <div className="absolute top-[20%] -right-[15%] w-[50%] h-[50%] bg-blue-900/25 blur-[140px] rounded-full" />
         <div className="absolute bottom-[10%] left-[10%] w-[40%] h-[40%] bg-pink-900/20 blur-[140px] rounded-full" />
@@ -292,7 +291,6 @@ export default function PublicProfilePage() {
       {/* ═══════════════════════════════════════════════════════════ */}
       <main className="lg:hidden relative z-10 pt-24 pb-10 px-5">
 
-        {/* Profile section */}
         <div className="relative">
           {/* 3-dot menu */}
           <div className="absolute top-0 right-0 z-50">
@@ -333,11 +331,11 @@ export default function PublicProfilePage() {
             </div>
           </div>
 
-          {/* Name */}
-          {profile.name && (
-            <div className="text-center mb-1">
-              <h1 className="text-lg font-bold text-white uppercase inline-flex items-center gap-1.5">
-                {profile.name}
+          {/* ✅ Display name or username — not both */}
+          {displayName && (
+            <div className="text-center mb-2">
+              <h1 className="text-lg font-bold text-white inline-flex items-center gap-1.5">
+                {displayName}
                 {isOfficial && (
                   <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#d13af7]">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
@@ -346,13 +344,6 @@ export default function PublicProfilePage() {
                   </span>
                 )}
               </h1>
-            </div>
-          )}
-
-          {/* Username */}
-          {profile.username && (
-            <div className="text-center mb-1">
-              <p className="text-xs text-gray-500">@{profile.username}</p>
             </div>
           )}
 
@@ -465,7 +456,9 @@ export default function PublicProfilePage() {
                       {profile.photoURL ? (
                         <img src={profile.photoURL} alt={profile.name} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-xs text-white font-bold block text-center leading-7">{profile.name?.[0]?.toUpperCase()}</span>
+                        <span className="text-xs text-white font-bold block text-center leading-7">
+                          {(profile.username || profile.name)?.[0]?.toUpperCase()}
+                        </span>
                       )}
                     </div>
                     <span className="text-xs text-gray-500">{formatPostDate(post.createdAt)}</span>
@@ -532,7 +525,10 @@ export default function PublicProfilePage() {
 
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <h1 className="text-3xl font-bold text-white">{profile.name}</h1>
+                      {/* ✅ Display name or username — not both */}
+                      {displayName && (
+                        <h1 className="text-3xl font-bold text-white">{displayName}</h1>
+                      )}
                       {isOfficial && (
                         <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#d13af7]">
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
@@ -540,7 +536,6 @@ export default function PublicProfilePage() {
                           </svg>
                         </span>
                       )}
-                      {profile.username && <p className="text-gray-400 text-sm">@{profile.username}</p>}
                       
                       <div className="flex items-center gap-2 ml-2">
                         <button 
