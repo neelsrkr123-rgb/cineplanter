@@ -289,7 +289,7 @@ export default function PublicProfilePage() {
       {/* ═══════════════════════════════════════════════════════════ */}
       {/* MOBILE VIEW                                                 */}
       {/* ═══════════════════════════════════════════════════════════ */}
-      <main className="lg:hidden relative z-10 pt-20 pb-10 px-5">
+      <main className="lg:hidden relative z-10 pt-16 pb-10 px-5">
 
         <div className="relative">
           {/* 3-dot menu */}
