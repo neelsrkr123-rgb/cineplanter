@@ -112,15 +112,22 @@ export default function PublicProfilePage() {
             setIsFollowing((userData.followers || []).includes(currentUserId));
           }
 
+          // Simple query without composite index
           const postsQuery = query(
             collection(db, "posts"),
             where("userId", "==", userId),
-            where("isDeleted", "==", false),
-            orderBy("createdAt", "desc"),
-            limit(20)
+            limit(50)
           );
           const postsSnap = await getDocs(postsQuery);
-          setPosts(postsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+          const userPosts = postsSnap.docs
+            .map(d => ({ id: d.id, ...d.data() }))
+            .filter((p: any) => !p.isDeleted)
+            .sort((a: any, b: any) => {
+              const dateA = a.createdAt?.toDate?.() || new Date(0);
+              const dateB = b.createdAt?.toDate?.() || new Date(0);
+              return dateB.getTime() - dateA.getTime();
+            });
+          setPosts(userPosts);
         } else {
           router.push('/404');
         }
@@ -210,6 +217,10 @@ export default function PublicProfilePage() {
   const handleReport = () => { alert('Report user'); setShowMenu(false); };
   const handleBlock = () => { if (confirm('Block this user?')) { alert('User blocked'); setShowMenu(false); } };
 
+  const navigateToProfile = (id: string) => {
+    router.push(`/profile/${id}`);
+  };
+
   const formatPostDate = (timestamp: any) => {
     if (!timestamp) return "";
     const date = timestamp.toDate?.() || new Date(timestamp);
@@ -258,17 +269,26 @@ export default function PublicProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white relative">
-      {/* Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-purple-900/10 blur-[120px] rounded-full" />
-        <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] bg-blue-900/10 blur-[120px] rounded-full" />
+    <div className="min-h-screen text-white relative">
+
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* PROFILE PAGE ONLY — Full-page glass morph background        */}
+      {/* Covers the global gradient from globals.css                  */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+        {/* Solid dark base — override global gradient */}
+        <div className="absolute inset-0 bg-[#050505]" />
+
+        {/* Glass morph blobs */}
+        <div className="absolute -top-[15%] -left-[15%] w-[60%] h-[60%] bg-purple-900/25 blur-[140px] rounded-full" />
+        <div className="absolute top-[20%] -right-[15%] w-[50%] h-[50%] bg-blue-900/25 blur-[140px] rounded-full" />
+        <div className="absolute bottom-[10%] left-[10%] w-[40%] h-[40%] bg-pink-900/20 blur-[140px] rounded-full" />
       </div>
 
       <Navbar />
 
       {/* ═══════════════════════════════════════════════════════════ */}
-      {/* MOBILE VIEW — Only visible below lg                          */}
+      {/* MOBILE VIEW                                                 */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <main className="lg:hidden relative z-10 pt-24 pb-10 px-5">
 
@@ -279,6 +299,7 @@ export default function PublicProfilePage() {
             <button 
               onClick={() => setShowMenu(!showMenu)} 
               className="p-2 rounded-full hover:bg-white/5 transition-colors"
+              aria-label="More options"
             >
               <MoreHorizontal size={22} className="text-gray-300" />
             </button>
@@ -369,22 +390,22 @@ export default function PublicProfilePage() {
           {(socials.instagram || socials.twitter || socials.facebook || socials.youtube) && (
             <div className="flex justify-center items-center gap-5 mb-4">
               {socials.instagram && (
-                <a href={socials.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-pink-400 transition-colors">
+                <a href={socials.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-pink-400 transition-colors" aria-label="Instagram">
                   <Instagram size={20} />
                 </a>
               )}
               {socials.twitter && (
-                <a href={socials.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors">
+                <a href={socials.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors" aria-label="Twitter">
                   <Twitter size={20} />
                 </a>
               )}
               {socials.facebook && (
-                <a href={socials.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-blue-400 transition-colors">
+                <a href={socials.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-blue-400 transition-colors" aria-label="Facebook">
                   <Facebook size={20} />
                 </a>
               )}
               {socials.youtube && (
-                <a href={socials.youtube} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-red-500 transition-colors">
+                <a href={socials.youtube} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-red-500 transition-colors" aria-label="YouTube">
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                   </svg>
@@ -468,7 +489,7 @@ export default function PublicProfilePage() {
       </main>
 
       {/* ═══════════════════════════════════════════════════════════ */}
-      {/* DESKTOP VIEW — unchanged (hidden on mobile)                  */}
+      {/* DESKTOP VIEW                                                 */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <main className="hidden lg:block relative z-10 max-w-[1500px] mx-auto pt-[10px] px-6 pb-10">
         <div className="flex gap-6">
@@ -512,6 +533,13 @@ export default function PublicProfilePage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h1 className="text-3xl font-bold text-white">{profile.name}</h1>
+                      {isOfficial && (
+                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#d13af7]">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                            <path d="M20 6L9 17L4 12" />
+                          </svg>
+                        </span>
+                      )}
                       {profile.username && <p className="text-gray-400 text-sm">@{profile.username}</p>}
                       
                       <div className="flex items-center gap-2 ml-2">
@@ -616,7 +644,7 @@ export default function PublicProfilePage() {
               </div>
             </div>
 
-            {/* Desktop Posts Section */}
+            {/* Desktop Posts */}
             <div className="backdrop-blur-sm bg-white/[0.02] border border-white/10 rounded-2xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-white">Posts</h2>
