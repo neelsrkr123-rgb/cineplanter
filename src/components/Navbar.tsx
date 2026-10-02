@@ -154,7 +154,7 @@ export default function Navbar() {
     for (const notif of unreadNotifs) await markNotificationAsRead(notif.id);
   };
 
-  // ✅ FIXED: Focus input when expanded — with proper delay
+  // ✅ Focus input when expanded — with proper delay
   useEffect(() => {
     if (isSearchExpanded && searchInputRef.current) {
       const timer = setTimeout(() => {
@@ -174,9 +174,9 @@ export default function Navbar() {
     setSearchTerm('');
   }, [pathname]);
 
-  // Click outside
+  // ✅ Click outside — use pointerdown for mobile + desktop
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    function handleClickOutside(event: PointerEvent) {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setIsProfileDropdownOpen(false);
       }
@@ -195,8 +195,8 @@ export default function Navbar() {
         setIsMobileMenuOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("pointerdown", handleClickOutside);
+    return () => document.removeEventListener("pointerdown", handleClickOutside);
   }, []);
 
   // Body scroll lock
@@ -480,7 +480,7 @@ export default function Navbar() {
           {/* ========== RIGHT SIDE ========== */}
           <div className="flex items-center gap-1 sm:gap-2 relative flex-shrink-0">
 
-            {/* === MOBILE SEARCH — with stopPropagation fixes === */}
+            {/* === MOBILE SEARCH — with pointer events fix === */}
             <div className="lg:hidden flex-shrink-0" ref={searchRef}>
               <AnimatePresence mode="wait" initial={false}>
                 {isSearchExpanded ? (
@@ -492,6 +492,7 @@ export default function Navbar() {
                     transition={{ duration: 0.3, ease: 'easeOut' }}
                     className="overflow-hidden"
                     onClick={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => e.stopPropagation()}
                   >
                     <div className="flex items-center 
                                     bg-white/[0.07] backdrop-blur-xl 
@@ -507,6 +508,7 @@ export default function Navbar() {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         onClick={(e) => e.stopPropagation()}
+                        onPointerDown={(e) => e.stopPropagation()}
                         onFocus={(e) => e.stopPropagation()}
                       />
                       {searchLoading && (
@@ -516,6 +518,7 @@ export default function Navbar() {
                       )}
                       <button
                         type="button"
+                        onPointerDown={(e) => e.stopPropagation()}
                         onClick={(e) => {
                           e.stopPropagation();
                           setIsSearchExpanded(false);
@@ -537,6 +540,7 @@ export default function Navbar() {
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ duration: 0.15 }}
                     type="button"
+                    onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsSearchExpanded(true);
@@ -550,8 +554,8 @@ export default function Navbar() {
               </AnimatePresence>
             </div>
 
-            {/* === DESKTOP SEARCH (unchanged) === */}
-            <div className="relative hidden lg:block" ref={searchRef}>
+            {/* === DESKTOP SEARCH === */}
+            <div className="relative hidden lg:block">
               <div className={`flex items-center transition-all duration-300 ${isSearchExpanded ? 'bg-white/10 rounded-full ring-1 ring-white/20' : ''}`}>
                 <AnimatePresence>
                   {isSearchExpanded && (
