@@ -963,21 +963,22 @@ export default function Navbar() {
 
       {/* ============ SEARCH RESULTS DROPDOWN ============ */}
       <AnimatePresence>
-        {isSearchExpanded && searchTerm.trim() && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.98 }}
-            transition={{ duration: 0.2 }}
-            className="fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 
-                       w-[96%] max-w-2xl 
-                       bg-gray-900/85 backdrop-blur-2xl 
-                       border border-white/15 
-                       rounded-2xl 
-                       shadow-2xl 
-                       z-40 
-                       overflow-hidden 
-                       max-h-[60vh] overflow-y-auto"
+  {isSearchExpanded && searchTerm.trim() && (
+    <motion.div
+      initial={{ opacity: 0, y: -10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -10, scale: 0.98 }}
+      transition={{ duration: 0.2 }}
+      className="fixed top-16 sm:top-20 
+                 left-3 right-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2
+                 w-auto sm:w-[96%] max-w-2xl
+                 bg-gray-900/85 backdrop-blur-2xl 
+                 border border-white/15 
+                 rounded-2xl 
+                 shadow-2xl 
+                 z-40 
+                 overflow-hidden 
+                 max-h-[60vh] overflow-y-auto"
           >
             {searchResults.length > 0 ? (
               <>
