@@ -95,9 +95,10 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
 
         if (snap.exists()) {
           const userData = snap.data();
+          // ✅ Original Firestore data — no fallback fake values
           setProfile({
             id: snap.id,
-            name: userData.name || "User",
+            name: userData.name || "",
             username: userData.username || "",
             email: userData.email || "",
             bio: userData.bio || "",
@@ -194,6 +195,9 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
   const isOwnProfile = getCurrentUserId() === userId;
   const socials = profile?.socials || {};
 
+  // ✅ Original role/title — no default
+  const userRole = freelancerData.title || profile.title || "";
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center">
@@ -213,77 +217,77 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
     );
   }
 
-  const userRole = freelancerData.title || profile.title || "Photographer";
-
   return (
-    <div className="min-h-screen bg-[#050505] text-white relative">
-      {/* Background Blobs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-purple-900/10 blur-[120px] rounded-full" />
-        <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] bg-blue-900/10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[10%] left-[20%] w-[30%] h-[30%] bg-pink-900/10 blur-[120px] rounded-full" />
+    <div className="min-h-screen text-white relative overflow-x-hidden">
+      
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* FULL PAGE BACKGROUND — Glass morph blobs                    */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <div className="fixed inset-0 pointer-events-none -z-10 bg-[#050505]">
+        {/* Big gradient blobs */}
+        <div className="absolute -top-[15%] -left-[15%] w-[60%] h-[60%] bg-purple-900/20 blur-[140px] rounded-full" />
+        <div className="absolute top-[20%] -right-[15%] w-[50%] h-[50%] bg-blue-900/20 blur-[140px] rounded-full" />
+        <div className="absolute bottom-[10%] left-[10%] w-[40%] h-[40%] bg-pink-900/15 blur-[140px] rounded-full" />
       </div>
 
       <Navbar />
 
       {/* ═══════════════════════════════════════════════════════════ */}
-      {/* MOBILE VIEW — Single glass morph container                  */}
+      {/* MOBILE VIEW — No container, everything on page              */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <main className="lg:hidden relative z-10 pt-24 pb-10">
-        
-        {/* Full-width glass morph container */}
-        <div className="mx-3 backdrop-blur-2xl bg-white/[0.04] border border-white/10 rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.6)] overflow-hidden">
-          
-          {/* ─── Profile Section ─── */}
-          <div className="relative px-5 pt-5 pb-5">
-            
-            {/* 3-dot menu top-right */}
-            <div className="absolute top-4 right-4 z-50">
-              <button 
-                onClick={() => setShowMenu(!showMenu)} 
-                className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
-                aria-label="More options"
-              >
-                <MoreHorizontal size={20} className="text-gray-300" />
-              </button>
 
-              {showMenu && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
-                  <div className="absolute right-0 top-12 z-50 w-56 bg-[#1a1a1a]/95 backdrop-blur-2xl border border-white/15 rounded-xl shadow-2xl overflow-hidden">
-                    <button onClick={handleShare} className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-300 hover:bg-white/5">
-                      <Share size={16} /> Share Profile
-                    </button>
-                    <button onClick={handleReport} className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-300 hover:bg-white/5">
-                      <Flag size={16} /> Report User
-                    </button>
-                    <button onClick={handleBlock} className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-400 hover:bg-red-400/10">
-                      <Ban size={16} /> Block User
-                    </button>
-                  </div>
-                </>
+        {/* ─── Profile Section ─── */}
+        <div className="relative px-5">
+          
+          {/* 3-dot menu top-right */}
+          <div className="absolute top-0 right-5 z-50">
+            <button 
+              onClick={() => setShowMenu(!showMenu)} 
+              className="p-2 rounded-full hover:bg-white/5 transition-colors"
+              aria-label="More options"
+            >
+              <MoreHorizontal size={22} className="text-gray-300" />
+            </button>
+
+            {showMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+                <div className="absolute right-0 top-12 z-50 w-56 bg-[#1a1a1a]/95 backdrop-blur-2xl border border-white/15 rounded-xl shadow-2xl overflow-hidden">
+                  <button onClick={handleShare} className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-300 hover:bg-white/5">
+                    <Share size={16} /> Share Profile
+                  </button>
+                  <button onClick={handleReport} className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-300 hover:bg-white/5">
+                    <Flag size={16} /> Report User
+                  </button>
+                  <button onClick={handleBlock} className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-400 hover:bg-red-400/10">
+                    <Ban size={16} /> Block User
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* ─── Avatar (center) ─── */}
+          <div className="flex justify-center mb-4 mt-4">
+            <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-2xl border-2 border-white/10">
+              {profile.photoURL ? (
+                <img 
+                  src={profile.photoURL} 
+                  alt={profile.name} 
+                  className="w-full h-full object-cover" 
+                />
+              ) : (
+                <User size={36} className="text-white" />
               )}
             </div>
+          </div>
 
-            {/* ─── Avatar (center) ─── */}
-            <div className="flex justify-center mb-4 mt-2">
-              <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-2xl border-2 border-white/10">
-                {profile.photoURL ? (
-                  <img 
-                    src={profile.photoURL} 
-                    alt={profile.name} 
-                    className="w-full h-full object-cover" 
-                  />
-                ) : (
-                  <User size={36} className="text-white" />
-                )}
-              </div>
-            </div>
-
-            {/* ─── Username ─── */}
+          {/* ─── Username ─── */}
+          {profile.name && (
             <div className="text-center mb-1">
               <h1 className="text-lg font-bold text-white uppercase inline-flex items-center gap-1.5">
-                {profile.username || profile.name}
+                {profile.name}
                 {isOfficial && (
                   <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[#d13af7]">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
@@ -293,183 +297,191 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
                 )}
               </h1>
             </div>
+          )}
 
-            {/* ─── Role ─── */}
+          {/* ─── Username handle (@) ─── */}
+          {profile.username && (
+            <div className="text-center mb-1">
+              <p className="text-xs text-gray-500">@{profile.username}</p>
+            </div>
+          )}
+
+          {/* ─── Role (only if exists) ─── */}
+          {userRole && (
             <div className="text-center mb-4">
               <p className="text-xs text-gray-400 font-medium">
                 {userRole}
               </p>
             </div>
+          )}
 
-            {/* ─── Stats (compact) ─── */}
-            <div className="flex justify-center gap-8 mb-4">
-              <div className="text-center">
-                <b className="text-white text-base font-bold block">{formatCount(posts.length)}</b>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Posts</p>
-              </div>
-              <div className="text-center">
-                <b className="text-white text-base font-bold block">{formatCount(profile.followers?.length || 0)}</b>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Followers</p>
-              </div>
-              <div className="text-center">
-                <b className="text-white text-base font-bold block">{formatCount(profile.following?.length || 0)}</b>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Following</p>
-              </div>
+          {/* ─── Stats ─── */}
+          <div className="flex justify-center gap-8 mb-4">
+            <div className="text-center">
+              <b className="text-white text-base font-bold block">{formatCount(posts.length)}</b>
+              <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Posts</p>
             </div>
-
-            {/* ─── Bio ─── */}
-            {profile.bio && (
-              <div className="text-center mb-4 px-2">
-                <p className="text-xs text-gray-300 leading-relaxed">{profile.bio}</p>
-              </div>
-            )}
-
-            {/* ─── Social icons (plain, no circles) ─── */}
-            {(socials.instagram || socials.twitter || socials.facebook || socials.youtube) && (
-              <div className="flex justify-center items-center gap-5 mb-4">
-                {socials.instagram && (
-                  <a 
-                    href={socials.instagram} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-gray-300 hover:text-pink-400 transition-colors"
-                    aria-label="Instagram"
-                  >
-                    <Instagram size={20} />
-                  </a>
-                )}
-                {socials.twitter && (
-                  <a 
-                    href={socials.twitter} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-gray-300 hover:text-white transition-colors"
-                    aria-label="Twitter"
-                  >
-                    <Twitter size={20} />
-                  </a>
-                )}
-                {socials.facebook && (
-                  <a 
-                    href={socials.facebook} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-gray-300 hover:text-blue-400 transition-colors"
-                    aria-label="Facebook"
-                  >
-                    <Facebook size={20} />
-                  </a>
-                )}
-                {socials.youtube && (
-                  <a 
-                    href={socials.youtube} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-gray-300 hover:text-red-500 transition-colors"
-                    aria-label="YouTube"
-                  >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                    </svg>
-                  </a>
-                )}
-              </div>
-            )}
-
-            {/* ─── Follow + Message buttons ─── */}
-            {!isOwnProfile && (
-              <div className="flex justify-center gap-3">
-                <button 
-                  onClick={handleFollow} 
-                  disabled={followingLoading} 
-                  className={`px-5 py-2 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 disabled:opacity-50 ${
-                    isFollowing 
-                      ? 'bg-zinc-800/80 text-slate-300 hover:bg-red-500/20 hover:text-red-400 border border-white/10' 
-                      : 'bg-zinc-800/80 text-white hover:bg-zinc-700/80 border border-white/10'
-                  }`}
-                >
-                  {followingLoading ? (
-                    <Loader2 size={12} className="animate-spin" />
-                  ) : (
-                    <>
-                      <User size={12} />
-                      <span>{isFollowing ? 'Following' : 'Follow'}</span>
-                    </>
-                  )}
-                </button>
-
-                <button
-                  onClick={handleMessage}
-                  disabled={messageLoading}
-                  className="px-5 py-2 rounded-full text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-all flex items-center gap-1.5 disabled:opacity-50"
-                >
-                  {messageLoading ? (
-                    <Loader2 size={12} className="animate-spin" />
-                  ) : (
-                    <>
-                      <MessageCircle size={12} />
-                      <span>Message</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
+            <div className="text-center">
+              <b className="text-white text-base font-bold block">{formatCount(profile.followers?.length || 0)}</b>
+              <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Followers</p>
+            </div>
+            <div className="text-center">
+              <b className="text-white text-base font-bold block">{formatCount(profile.following?.length || 0)}</b>
+              <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Following</p>
+            </div>
           </div>
 
-          {/* ─── Divider ─── */}
-          <div className="border-t border-white/10"></div>
-
-          {/* ─── Posts Section (INSIDE same container) ─── */}
-          <div className="px-5 py-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-white">Posts</h2>
-              <span className="text-[10px] text-purple-400 bg-purple-500/20 px-2.5 py-1 rounded-full font-medium">
-                {posts.length} {posts.length === 1 ? 'post' : 'posts'}
-              </span>
+          {/* ─── Bio (only if exists) ─── */}
+          {profile.bio && (
+            <div className="text-center mb-4 px-2">
+              <p className="text-xs text-gray-300 leading-relaxed">{profile.bio}</p>
             </div>
+          )}
 
-            {posts.length > 0 ? (
-              <div className="space-y-4">
-                {posts.map((post) => (
-                  <div 
-                    key={post.id} 
-                    className="bg-white/[0.03] border border-white/10 rounded-2xl p-4"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 overflow-hidden">
-                        {profile.photoURL ? (
-                          <img src={profile.photoURL} alt={profile.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-xs text-white font-bold block text-center leading-7">
-                            {profile.name?.[0]?.toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-xs text-gray-500">{formatPostDate(post.createdAt)}</span>
-                      {post.postType && (
-                        <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full">
-                          {post.postType}
+          {/* ─── Social icons (only if exists) ─── */}
+          {(socials.instagram || socials.twitter || socials.facebook || socials.youtube) && (
+            <div className="flex justify-center items-center gap-5 mb-4">
+              {socials.instagram && (
+                <a 
+                  href={socials.instagram} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-pink-400 transition-colors"
+                  aria-label="Instagram"
+                >
+                  <Instagram size={20} />
+                </a>
+              )}
+              {socials.twitter && (
+                <a 
+                  href={socials.twitter} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-white transition-colors"
+                  aria-label="Twitter"
+                >
+                  <Twitter size={20} />
+                </a>
+              )}
+              {socials.facebook && (
+                <a 
+                  href={socials.facebook} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-blue-400 transition-colors"
+                  aria-label="Facebook"
+                >
+                  <Facebook size={20} />
+                </a>
+              )}
+              {socials.youtube && (
+                <a 
+                  href={socials.youtube} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-red-500 transition-colors"
+                  aria-label="YouTube"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
+                </a>
+              )}
+            </div>
+          )}
+
+          {/* ─── Follow + Message buttons ─── */}
+          {!isOwnProfile && (
+            <div className="flex justify-center gap-3 mb-5">
+              <button 
+                onClick={handleFollow} 
+                disabled={followingLoading} 
+                className={`px-5 py-2 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 disabled:opacity-50 ${
+                  isFollowing 
+                    ? 'bg-zinc-800/80 text-slate-300 hover:bg-red-500/20 hover:text-red-400 border border-white/10' 
+                    : 'bg-zinc-800/80 text-white hover:bg-zinc-700/80 border border-white/10'
+                }`}
+              >
+                {followingLoading ? (
+                  <Loader2 size={12} className="animate-spin" />
+                ) : (
+                  <>
+                    <User size={12} />
+                    <span>{isFollowing ? 'Following' : 'Follow'}</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={handleMessage}
+                disabled={messageLoading}
+                className="px-5 py-2 rounded-full text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-all flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {messageLoading ? (
+                  <Loader2 size={12} className="animate-spin" />
+                ) : (
+                  <>
+                    <MessageCircle size={12} />
+                    <span>Message</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* ─── Divider ─── */}
+        <div className="border-t border-white/10 mx-5"></div>
+
+        {/* ─── Posts Section ─── */}
+        <div className="px-5 py-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-semibold text-white">Posts</h2>
+            <span className="text-[10px] text-purple-400 bg-purple-500/20 px-2.5 py-1 rounded-full font-medium">
+              {posts.length} {posts.length === 1 ? 'post' : 'posts'}
+            </span>
+          </div>
+
+          {posts.length > 0 ? (
+            <div className="space-y-4">
+              {posts.map((post) => (
+                <div 
+                  key={post.id} 
+                  className="backdrop-blur-sm bg-white/[0.03] border border-white/10 rounded-2xl p-4"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 overflow-hidden">
+                      {profile.photoURL ? (
+                        <img src={profile.photoURL} alt={profile.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-xs text-white font-bold block text-center leading-7">
+                          {profile.name?.[0]?.toUpperCase()}
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-300 mb-2 whitespace-pre-wrap line-clamp-4">{post.content}</p>
-                    {post.imageUrl && (
-                      <img src={post.imageUrl} alt="Post" className="mt-2 rounded-xl max-h-60 object-cover w-full" />
+                    <span className="text-xs text-gray-500">{formatPostDate(post.createdAt)}</span>
+                    {post.postType && (
+                      <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full">
+                        {post.postType}
+                      </span>
                     )}
-                    <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
-                      <span className="flex items-center gap-1"><Heart size={13} /> {post.likesCount || 0}</span>
-                      <span className="flex items-center gap-1"><MessageSquare size={13} /> {post.commentsCount || 0}</span>
-                    </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-10 text-gray-500 text-sm">
-                No posts yet
-              </div>
-            )}
-          </div>
-
+                  <p className="text-sm text-gray-300 mb-2 whitespace-pre-wrap line-clamp-4">{post.content}</p>
+                  {post.imageUrl && (
+                    <img src={post.imageUrl} alt="Post" className="mt-2 rounded-xl max-h-60 object-cover w-full" />
+                  )}
+                  <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
+                    <span className="flex items-center gap-1"><Heart size={13} /> {post.likesCount || 0}</span>
+                    <span className="flex items-center gap-1"><MessageSquare size={13} /> {post.commentsCount || 0}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-10 text-gray-500 text-sm">
+              No posts yet
+            </div>
+          )}
         </div>
       </main>
 
