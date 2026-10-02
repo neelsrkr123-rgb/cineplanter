@@ -10,8 +10,8 @@ import { useAuth } from "#/context/AuthContext";
 import { 
   MapPin, Mail, Phone, User, Briefcase, Star, Clock, DollarSign, Award,
   UserPlus, UserCheck, Loader2, MoreHorizontal, Share, Flag, Ban, 
-  IdCard, Globe, Github, Linkedin, Film, Folder, GraduationCap, CreditCard, 
-  Facebook, Instagram, Twitter, Heart, MessageSquare, BookOpen, ShoppingBag, Search, MessageCircle
+  Globe, Github, Linkedin, Film, Folder, GraduationCap, CreditCard, 
+  Facebook, Instagram, Twitter, Heart, MessageSquare, BookOpen, ShoppingBag, Search, MessageCircle, IdCard
 } from 'lucide-react';
 import Link from "next/link";
 
@@ -36,6 +36,7 @@ interface UserProfile {
     facebook?: string;
     instagram?: string;
     twitter?: string;
+    youtube?: string;
   };
   freelancerProfile?: {
     title?: string;
@@ -56,7 +57,7 @@ interface UserProfile {
   };
 }
 
-export default function PublicProfilePage({ params }: { params: { id: string } }) {
+export default function PublicProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { user: currentUser, isLoading: authLoading } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -72,7 +73,6 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
   const [unfollowingId, setUnfollowingId] = useState<string | null>(null);
   const router = useRouter();
 
-  // Menu items for normal profile
   const normalMenu = [
     { icon: User, label: "Profile Info", href: "#" },
     { icon: Film, label: "My Movies", href: "#" },
@@ -80,7 +80,6 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
     { icon: GraduationCap, label: "My Courses", href: "#" }
   ];
 
-  // Menu items for freelancer profile
   const freelancerMenu = [
     { icon: User, label: "Profile Info", href: "#" },
     { icon: Film, label: "My Movies", href: "#" },
@@ -91,6 +90,7 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
     { icon: DollarSign, label: "Earnings", href: "#" }
   ];
 
+  // ✅ Next.js 15 এর জন্য params await
   useEffect(() => {
     const unwrapParams = async () => {
       const resolvedParams = await params;
@@ -100,73 +100,67 @@ export default function PublicProfilePage({ params }: { params: { id: string } }
   }, [params]);
 
   const getCurrentUserId = () => {
-    return currentUser?.id || currentUser?.uid;
+    return currentUser?.id || (currentUser as any)?.uid;
   };
 
- // Function to handle message button click - REMOVED community/messages redirect
-const handleMessage = async () => {
-  const currentUserId = getCurrentUserId();
-  if (!currentUserId) {
-    router.push('/auth/signin');
-    return;
-  }
-  if (!userId) return;
-  if (currentUserId === userId) {
-    alert("You cannot message yourself");
-    return;
-  }
-  
-  setMessageLoading(true);
-  try {
-    // Check if conversation already exists
-    const conversationsRef = collection(db, 'conversations');
-    const q = query(
-      conversationsRef,
-      where('participants', 'array-contains', currentUserId)
-    );
-    const snapshot = await getDocs(q);
-    
-    let existingConversation: { id: string; participants: string[] } | null = null;
-    
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-      if (data.participants && data.participants.includes(userId)) {
-        existingConversation = { 
-          id: doc.id, 
-          participants: data.participants 
-        };
-      }
-    });
-    
-    if (existingConversation) {
-      // 🔥 সরানো হয়েছে - শুধু alert দেখান
-      alert("Conversation exists! Messages feature coming soon.");
-      // router.push(`/community/messages?conversationId=${existingConversation.id}`);
-    } else {
-      // Create new conversation
-      const newConversation = {
-        participants: [currentUserId, userId],
-        lastMessage: "",
-        lastMessageTime: serverTimestamp(),
-        lastMessageSender: "",
-        unreadCount: { [currentUserId]: 0, [userId]: 0 },
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        isPinned: false,
-        isMarkedUnread: false
-      };
-      
-      await addDoc(collection(db, "conversations"), newConversation);
-      // 🔥 সরানো হয়েছে - শুধু alert দেখান
-      alert("Conversation created! Messages feature coming soon.");
+  const handleMessage = async () => {
+    const currentUserId = getCurrentUserId();
+    if (!currentUserId) {
+      router.push('/auth');
+      return;
     }
-  } catch (error) {
-    console.error("Error starting conversation:", error);
-    alert("Failed to start conversation. Please try again.");
-  } finally {
-    setMessageLoading(false);
-  }
-};
+    if (!userId) return;
+    if (currentUserId === userId) {
+      alert("You cannot message yourself");
+      return;
+    }
+    
+    setMessageLoading(true);
+    try {
+      const conversationsRef = collection(db, 'conversations');
+      const q = query(
+        conversationsRef,
+        where('participants', 'array-contains', currentUserId)
+      );
+      const snapshot = await getDocs(q);
+      
+      let existingConversation: { id: string; participants: string[] } | null = null;
+      
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.participants && data.participants.includes(userId)) {
+          existingConversation = { 
+            id: doc.id, 
+            participants: data.participants 
+          };
+        }
+      });
+      
+      if (existingConversation) {
+        alert("Conversation exists! Messages feature coming soon.");
+      } else {
+        const newConversation = {
+          participants: [currentUserId, userId],
+          lastMessage: "",
+          lastMessageTime: serverTimestamp(),
+          lastMessageSender: "",
+          unreadCount: { [currentUserId]: 0, [userId]: 0 },
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          isPinned: false,
+          isMarkedUnread: false
+        };
+        
+        await addDoc(collection(db, "conversations"), newConversation);
+        alert("Conversation created! Messages feature coming soon.");
+      }
+    } catch (error) {
+      console.error("Error starting conversation:", error);
+      alert("Failed to start conversation. Please try again.");
+    } finally {
+      setMessageLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!userId) return;
@@ -181,12 +175,12 @@ const handleMessage = async () => {
           const userData = snap.data();
           setProfile({
             id: snap.id,
-            name: userData.name || userData.displayName || "User",
+            name: userData.name || "User",
             username: userData.username || "",
             email: userData.email || "",
             bio: userData.bio || "",
             location: userData.location || "",
-            photoURL: userData.photoURL || userData.avatar || "",
+            photoURL: userData.avatar || userData.photoURL || "",
             profileType: userData.profileType || "normal",
             followers: userData.followers || [],
             following: userData.following || [],
@@ -203,7 +197,6 @@ const handleMessage = async () => {
             setIsFollowing(followers.includes(currentUserId));
           }
 
-          // Fetch user posts
           const postsQuery = query(
             collection(db, "posts"),
             where("userId", "==", userId),
@@ -230,7 +223,6 @@ const handleMessage = async () => {
     fetchUserProfile();
   }, [userId, currentUser, router]);
 
-  // Real-time listener for following list
   useEffect(() => {
     if (!userId) return;
 
@@ -241,7 +233,6 @@ const handleMessage = async () => {
         const userData = docSnapshot.data();
         const followingIds: string[] = userData.following || [];
         
-        // Fetch full details of each followed user
         const followingUsersList: any[] = [];
         
         for (const followingId of followingIds) {
@@ -253,9 +244,9 @@ const handleMessage = async () => {
             followingUsersList.push({
               id: followingId,
               userId: followingId,
-              name: followingData.name || followingData.displayName || "User",
+              name: followingData.name || "User",
               username: followingData.username || followingId,
-              photoURL: followingData.photoURL || followingData.avatar,
+              photoURL: followingData.avatar || followingData.photoURL,
               email: followingData.email
             });
           }
@@ -271,7 +262,7 @@ const handleMessage = async () => {
   const handleFollow = async () => {
     const currentUserId = getCurrentUserId();
     if (!currentUserId) {
-      router.push('/auth/signin');
+      router.push('/auth');
       return;
     }
 
@@ -309,15 +300,10 @@ const handleMessage = async () => {
       const currentUserRef = doc(db, 'users', currentUserId);
       const targetUserRef = doc(db, 'users', targetUserId);
 
-      await updateDoc(currentUserRef, {
-        following: arrayRemove(targetUserId)
-      });
-      await updateDoc(targetUserRef, {
-        followers: arrayRemove(currentUserId)
-      });
+      await updateDoc(currentUserRef, { following: arrayRemove(targetUserId) });
+      await updateDoc(targetUserRef, { followers: arrayRemove(currentUserId) });
     } catch (error) {
       console.error('Error unfollowing:', error);
-      alert('Failed to unfollow user');
     } finally {
       setUnfollowingId(null);
     }
@@ -327,7 +313,11 @@ const handleMessage = async () => {
     const profileUrl = `${window.location.origin}/profile/${userId}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: `${profile?.name}'s Profile`, text: `Check out ${profile?.name}'s profile on CinePlanter!`, url: profileUrl });
+        await navigator.share({ 
+          title: `${profile?.name}'s Profile`, 
+          text: `Check out ${profile?.name}'s profile on CinePlanter!`, 
+          url: profileUrl 
+        });
       } else {
         await navigator.clipboard.writeText(profileUrl);
         alert('Profile link copied!');
@@ -337,7 +327,12 @@ const handleMessage = async () => {
   };
 
   const handleReport = () => { alert('Report user'); setShowMenu(false); };
-  const handleBlock = () => { if (confirm('Block this user?')) { alert('User blocked'); setShowMenu(false); } };
+  const handleBlock = () => { 
+    if (confirm('Block this user?')) { 
+      alert('User blocked'); 
+      setShowMenu(false); 
+    } 
+  };
 
   const navigateToProfile = (userId: string) => {
     router.push(`/profile/${userId}`);
@@ -359,18 +354,12 @@ const handleMessage = async () => {
   const isOwnProfile = getCurrentUserId() === userId;
   const socials = profile?.socials || {};
 
-  // Safe location display - checks if location exists
   const displayLocation = (() => {
-    if (isFreelancer && freelancerData.location) {
-      return freelancerData.location;
-    }
-    if (profile?.location) {
-      return profile.location;
-    }
+    if (isFreelancer && freelancerData.location) return freelancerData.location;
+    if (profile?.location) return profile.location;
     return null;
   })();
 
-  // Filter following users based on search
   const filteredFollowing = followingUsers.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (user.username && user.username.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -395,11 +384,11 @@ const handleMessage = async () => {
     );
   }
 
-  // Determine which menu to show
   const currentMenu = isFreelancer && view === 'freelancer' ? freelancerMenu : normalMenu;
 
   return (
     <div className="min-h-screen bg-[#050505] text-white relative">
+      {/* Background Blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-purple-900/10 blur-[120px] rounded-full" />
         <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] bg-blue-900/10 blur-[120px] rounded-full" />
@@ -407,10 +396,273 @@ const handleMessage = async () => {
 
       <Navbar />
 
-      <main className="relative z-10 max-w-[1500px] mx-auto pt-[10px] px-6 pb-10">
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* MOBILE VIEW — Center aligned, glass morph                  */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <main className="lg:hidden relative z-10 pt-24 px-4 pb-10">
+        {/* Glass morph container */}
+        <div className="backdrop-blur-2xl bg-white/[0.04] border border-white/10 rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.6)] relative">
+
+          {/* ✅ 3-dot menu — ekebare upore right এ */}
+          <div className="absolute top-4 right-4 z-50">
+            <button 
+              onClick={() => setShowMenu(!showMenu)} 
+              className="p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors"
+              aria-label="More options"
+            >
+              <MoreHorizontal size={20} className="text-gray-300" />
+            </button>
+
+            {showMenu && (
+              <>
+                {/* Outside click to close */}
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setShowMenu(false)}
+                />
+                
+                {/* Dropdown menu */}
+                <div className="absolute right-0 top-12 z-50 w-56 bg-[#1a1a1a]/95 backdrop-blur-2xl border border-white/15 rounded-xl shadow-2xl overflow-hidden">
+                  <button 
+                    onClick={handleShare} 
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-300 hover:bg-white/5 transition-colors"
+                  >
+                    <Share size={16} /> Share Profile
+                  </button>
+                  <button 
+                    onClick={handleReport} 
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-300 hover:bg-white/5 transition-colors"
+                  >
+                    <Flag size={16} /> Report User
+                  </button>
+                  <button 
+                    onClick={handleBlock} 
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-400 hover:bg-red-400/10 transition-colors"
+                  >
+                    <Ban size={16} /> Block User
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* ─── AVATAR (center) ─── */}
+          <div className="flex justify-center mb-4">
+            <div className="w-28 h-28 rounded-full overflow-hidden bg-gradient-to-r from-purple-600 to-pink-600 border-4 border-white/10 ring-4 ring-purple-500/10 flex items-center justify-center">
+              {profile.photoURL ? (
+                <img 
+                  src={profile.photoURL} 
+                  alt={profile.name} 
+                  className="w-full h-full object-cover" 
+                />
+              ) : (
+                <User size={40} className="text-white" />
+              )}
+            </div>
+          </div>
+
+          {/* ─── USERNAME (center) ─── */}
+          <div className="text-center mb-1">
+            <h1 className="text-2xl font-bold text-white inline-flex items-center gap-1.5">
+              {profile.username || profile.name}
+              {isOfficial && (
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#d13af7]">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                    <path d="M20 6L9 17L4 12" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+              )}
+            </h1>
+          </div>
+
+          {/* ─── ROLE (center) ─── */}
+          {(freelancerData.title || profile.title) && (
+            <div className="text-center mb-4">
+              <span className="text-sm text-purple-400 font-medium">
+                {freelancerData.title || profile.title}
+              </span>
+            </div>
+          )}
+
+          {/* ─── STATS (center) ─── */}
+          <div className="flex justify-center gap-6 mb-4">
+            <div className="text-center">
+              <b className="text-white text-lg">{posts.length}</b>
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider">Posts</p>
+            </div>
+            <div className="text-center">
+              <b className="text-white text-lg">{profile.followers?.length || 0}</b>
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider">Followers</p>
+            </div>
+            <div className="text-center">
+              <b className="text-white text-lg">{profile.following?.length || 0}</b>
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider">Following</p>
+            </div>
+          </div>
+
+          {/* ─── BIO (center) ─── */}
+          {profile.bio && (
+            <div className="text-center mb-4 px-2">
+              <p className="text-sm text-slate-300 leading-relaxed">{profile.bio}</p>
+            </div>
+          )}
+
+          {/* ─── FOLLOW + MESSAGE ─── */}
+          {!isOwnProfile && (
+            <div className="flex justify-center gap-3 mb-4">
+              <button 
+                onClick={handleFollow} 
+                disabled={followingLoading} 
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 disabled:opacity-50 ${
+                  isFollowing 
+                    ? 'bg-zinc-800 text-slate-300 hover:bg-red-500/20 hover:text-red-400' 
+                    : 'bg-purple-600 text-white hover:bg-purple-700'
+                }`}
+              >
+                {followingLoading ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : isFollowing ? (
+                  <>
+                    <UserCheck size={14} />
+                    <span>Following</span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlus size={14} />
+                    <span>Follow</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={handleMessage}
+                disabled={messageLoading}
+                className="px-5 py-2 rounded-full text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-all flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {messageLoading ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <>
+                    <MessageCircle size={14} />
+                    <span>Message</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* ─── SOCIAL LINKS ─── */}
+          {(socials.facebook || socials.instagram || socials.twitter || socials.youtube) && (
+            <div className="flex justify-center gap-4 pt-4 border-t border-white/10">
+              {socials.facebook && (
+                <a 
+                  href={socials.facebook} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-white/5 hover:bg-blue-500/20 flex items-center justify-center text-gray-400 hover:text-blue-500 transition-all"
+                  aria-label="Facebook"
+                >
+                  <Facebook size={18} />
+                </a>
+              )}
+              {socials.instagram && (
+                <a 
+                  href={socials.instagram} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-white/5 hover:bg-pink-500/20 flex items-center justify-center text-gray-400 hover:text-pink-500 transition-all"
+                  aria-label="Instagram"
+                >
+                  <Instagram size={18} />
+                </a>
+              )}
+              {socials.twitter && (
+                <a 
+                  href={socials.twitter} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-white/5 hover:bg-blue-400/20 flex items-center justify-center text-gray-400 hover:text-blue-400 transition-all"
+                  aria-label="Twitter"
+                >
+                  <Twitter size={18} />
+                </a>
+              )}
+              {socials.youtube && (
+                <a 
+                  href={socials.youtube} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-full bg-white/5 hover:bg-red-500/20 flex items-center justify-center text-gray-400 hover:text-red-500 transition-all"
+                  aria-label="YouTube"
+                >
+                  <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ═══════════════════════════════════════════════════════════ */}
+        {/* POSTS SECTION — below                                   */}
+        {/* ═══════════════════════════════════════════════════════════ */}
+        <div className="mt-6 backdrop-blur-2xl bg-white/[0.04] border border-white/10 rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-white">Posts</h2>
+            <span className="text-xs text-purple-400 bg-purple-500/20 px-2 py-1 rounded-full">
+              {posts.length} {posts.length === 1 ? 'post' : 'posts'}
+            </span>
+          </div>
+
+          {posts.length > 0 ? (
+            <div className="space-y-4">
+              {posts.map((post) => (
+                <div 
+                  key={post.id} 
+                  className="bg-white/[0.02] border border-white/10 rounded-xl p-4 hover:border-purple-500/30 transition-colors"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 overflow-hidden">
+                      {profile.photoURL ? (
+                        <img src={profile.photoURL} alt={profile.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-xs text-white font-bold block text-center leading-6">
+                          {profile.name?.[0]?.toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-500">{formatPostDate(post.createdAt)}</span>
+                    {post.postType && (
+                      <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full">
+                        {post.postType}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-300 mb-2 line-clamp-3">{post.content}</p>
+                  {post.imageUrl && (
+                    <img src={post.imageUrl} alt="Post" className="mt-2 rounded-lg max-h-40 object-cover w-full" />
+                  )}
+                  <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                    <span className="flex items-center gap-1"><Heart size={12} /> {post.likesCount || 0}</span>
+                    <span className="flex items-center gap-1"><MessageSquare size={12} /> {post.commentsCount || 0}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-8 text-sm">No posts yet</p>
+          )}
+        </div>
+      </main>
+
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* DESKTOP VIEW — unchanged                                    */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <main className="hidden lg:block relative z-10 max-w-[1500px] mx-auto pt-[10px] px-6 pb-10">
         <div className="flex gap-6">
           {/* LEFT SIDEBAR */}
-          <aside className="w-[230px] hidden md:block">
+          <aside className="w-[230px]">
             <div className="sticky top-[90px] backdrop-blur-xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/10 rounded-2xl p-8 shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
               <div className="flex flex-col text-sm">
                 <p className="text-white font-semibold text-lg mb-6">Menu</p>
@@ -434,31 +686,44 @@ const handleMessage = async () => {
             {/* PROFILE HEADER */}
             <div className="backdrop-blur-xl bg-gradient-to-b from-white/[0.04] to-white/[0.01] border border-white/10 rounded-2xl p-6 md:p-10 shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
               <div className="flex flex-col lg:flex-row justify-between gap-6">
-                {/* LEFT - Avatar and Info */}
                 <div className="flex gap-8">
                   <div className="relative">
                     <div className="w-36 h-36 rounded-full overflow-hidden bg-gradient-to-r from-purple-600 to-pink-600">
-                      {profile.photoURL ? <img src={profile.photoURL} alt={profile.name} className="w-full h-full object-cover" /> : <User size={48} className="text-white" />}
+                      {profile.photoURL ? (
+                        <img src={profile.photoURL} alt={profile.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <User size={48} className="text-white" />
+                      )}
                     </div>
                   </div>
 
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h1 className="text-3xl font-bold text-white">{profile.name}</h1>
-                      {isOfficial && <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#d13af7]"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M20 6L9 17L4 12" /></svg></span>}
+                      {isOfficial && (
+                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#d13af7]">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                            <path d="M20 6L9 17L4 12" />
+                          </svg>
+                        </span>
+                      )}
                       {profile.username && <p className="text-gray-400 text-sm">@{profile.username}</p>}
                       
-                      {/* Follow and Message Buttons - Side by side */}
                       <div className="flex items-center gap-2 ml-2">
                         <button 
                           onClick={handleFollow} 
                           disabled={followingLoading} 
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${isFollowing ? 'bg-zinc-800 text-slate-300 hover:bg-red-500/20 hover:text-red-400' : 'bg-purple-600 text-white hover:bg-purple-700'} disabled:opacity-50`}
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            isFollowing 
+                              ? 'bg-zinc-800 text-slate-300 hover:bg-red-500/20 hover:text-red-400' 
+                              : 'bg-purple-600 text-white hover:bg-purple-700'
+                          } disabled:opacity-50`}
                         >
-                          {followingLoading ? <Loader2 size={12} className="animate-spin" /> : isFollowing ? 'Following' : 'Follow'}
+                          {followingLoading ? (
+                            <Loader2 size={12} className="animate-spin" />
+                          ) : isFollowing ? 'Following' : 'Follow'}
                         </button>
                         
-                        {/* Message Button - Only for other users */}
                         {!isOwnProfile && (
                           <button
                             onClick={handleMessage}
@@ -478,28 +743,46 @@ const handleMessage = async () => {
                       </div>
                     </div>
 
-                    {/* Email - for normal profile */}
                     {!isFreelancer && (
                       <p className="text-slate-400 text-sm">{profile.email}</p>
                     )}
 
-                    {/* Stats */}
                     {isFreelancer && view === 'freelancer' ? (
                       <div className="flex gap-6 mt-4">
-                        <div className="text-center"><b className="text-white text-xl">{profile.followers?.length || 0}</b><p className="text-xs text-slate-400">followers</p></div>
-                        <div className="text-center"><b className="text-white text-xl">{profile.following?.length || 0}</b><p className="text-xs text-slate-400">following</p></div>
-                        <div className="text-center"><b className="text-white text-xl">{freelancerData.successRate || '0%'}</b><p className="text-xs text-slate-400">success rate</p></div>
-                        <div className="text-center"><b className="text-white text-xl">{freelancerData.rating || '0.0'}</b><p className="text-xs text-slate-400">rating</p></div>
+                        <div className="text-center">
+                          <b className="text-white text-xl">{profile.followers?.length || 0}</b>
+                          <p className="text-xs text-slate-400">followers</p>
+                        </div>
+                        <div className="text-center">
+                          <b className="text-white text-xl">{profile.following?.length || 0}</b>
+                          <p className="text-xs text-slate-400">following</p>
+                        </div>
+                        <div className="text-center">
+                          <b className="text-white text-xl">{freelancerData.successRate || '0%'}</b>
+                          <p className="text-xs text-slate-400">success rate</p>
+                        </div>
+                        <div className="text-center">
+                          <b className="text-white text-xl">{freelancerData.rating || '0.0'}</b>
+                          <p className="text-xs text-slate-400">rating</p>
+                        </div>
                       </div>
                     ) : (
                       <div className="flex gap-6 mt-4">
-                        <div className="text-center"><b className="text-white text-xl">{posts.length}</b><p className="text-xs text-slate-400">posts</p></div>
-                        <div className="text-center"><b className="text-white text-xl">{profile.followers?.length || 0}</b><p className="text-xs text-slate-400">followers</p></div>
-                        <div className="text-center"><b className="text-white text-xl">{profile.following?.length || 0}</b><p className="text-xs text-slate-400">following</p></div>
+                        <div className="text-center">
+                          <b className="text-white text-xl">{posts.length}</b>
+                          <p className="text-xs text-slate-400">posts</p>
+                        </div>
+                        <div className="text-center">
+                          <b className="text-white text-xl">{profile.followers?.length || 0}</b>
+                          <p className="text-xs text-slate-400">followers</p>
+                        </div>
+                        <div className="text-center">
+                          <b className="text-white text-xl">{profile.following?.length || 0}</b>
+                          <p className="text-xs text-slate-400">following</p>
+                        </div>
                       </div>
                     )}
 
-                    {/* Role as Tag - for freelancer profile */}
                     {isFreelancer && freelancerData.title && (
                       <div className="mt-2">
                         <span className="px-3 py-1 text-xs bg-blue-600 text-white rounded-full">
@@ -508,10 +791,10 @@ const handleMessage = async () => {
                       </div>
                     )}
 
-                    {/* Bio */}
-                    {profile.bio && <p className="text-sm text-slate-300 mt-4 max-w-md">{profile.bio}</p>}
+                    {profile.bio && (
+                      <p className="text-sm text-slate-300 mt-4 max-w-md">{profile.bio}</p>
+                    )}
                     
-                    {/* Title/Tag from normal profile */}
                     {!isFreelancer && profile.title && (
                       <div className="mt-2">
                         <span className="px-3 py-1 text-xs bg-blue-600 text-white rounded-full">
@@ -522,37 +805,60 @@ const handleMessage = async () => {
                   </div>
                 </div>
 
-                {/* RIGHT - Buttons, Contact Info, Location & Social Links */}
                 <div className="flex flex-col items-end gap-3">
                   <div className="flex gap-2">
-                    {/* Social Profile Button - Only for freelancer view */}
                     {isFreelancer && (
-                      <button onClick={() => setView(view === 'freelancer' ? 'normal' : 'freelancer')} className={`px-4 py-2 rounded-lg text-sm ${view === 'normal' ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}>
-                        <User size={16} className="inline mr-1" /> {view === 'freelancer' ? 'Social Profile' : 'Freelancer Profile'}
+                      <button 
+                        onClick={() => setView(view === 'freelancer' ? 'normal' : 'freelancer')} 
+                        className={`px-4 py-2 rounded-lg text-sm ${
+                          view === 'normal' 
+                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' 
+                            : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                        }`}
+                      >
+                        <User size={16} className="inline mr-1" /> 
+                        {view === 'freelancer' ? 'Social Profile' : 'Freelancer Profile'}
                       </button>
                     )}
 
-                    {/* ID Card Button - Only for freelancer view */}
                     {isFreelancer && view === 'freelancer' && (
-                      <Link href={`/profile/${userId}/id-card`} className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg text-sm">
+                      <Link 
+                        href={`/profile/${userId}/id-card`} 
+                        className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg text-sm"
+                      >
                         <IdCard size={16} className="inline mr-1" /> ID Card
                       </Link>
                     )}
                     
-                    {/* Hamburger Menu */}
                     <div className="relative">
-                      <button onClick={() => setShowMenu(!showMenu)} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg"><MoreHorizontal size={20} /></button>
+                      <button 
+                        onClick={() => setShowMenu(!showMenu)} 
+                        className="p-2 bg-white/5 hover:bg-white/10 rounded-lg"
+                      >
+                        <MoreHorizontal size={20} />
+                      </button>
                       {showMenu && (
-                        <div className="absolute right-0 top-12 z-50 w-56 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl">
-                          <button onClick={handleShare} className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-300 hover:bg-white/5"><Share size={16} /> Share Profile</button>
-                          <button onClick={handleReport} className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-300 hover:bg-white/5"><Flag size={16} /> Report User</button>
-                          <button onClick={handleBlock} className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-400 hover:bg-red-400/10"><Ban size={16} /> Block User</button>
-                        </div>
+                        <>
+                          <div 
+                            className="fixed inset-0 z-40" 
+                            onClick={() => setShowMenu(false)}
+                          />
+                          <div className="absolute right-0 top-12 z-50 w-56 bg-[#1a1a1a]/95 backdrop-blur-2xl border border-white/15 rounded-xl shadow-2xl overflow-hidden">
+                            <button onClick={handleShare} className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-300 hover:bg-white/5 transition-colors">
+                              <Share size={16} /> Share Profile
+                            </button>
+                            <button onClick={handleReport} className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-300 hover:bg-white/5 transition-colors">
+                              <Flag size={16} /> Report User
+                            </button>
+                            <button onClick={handleBlock} className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-400 hover:bg-red-400/10 transition-colors">
+                              <Ban size={16} /> Block User
+                            </button>
+                          </div>
+                        </>
                       )}
                     </div>
                   </div>
 
-                  {/* Location - Safe check */}
                   {displayLocation && (
                     <div className="flex items-center justify-end gap-2 text-gray-400 text-sm mt-1 pt-2 border-t border-white/10">
                       <span>{displayLocation}</span>
@@ -560,9 +866,7 @@ const handleMessage = async () => {
                     </div>
                   )}
 
-                  {/* Contact Info - Clickable Links */}
                   <div className="w-full space-y-2 mt-1">
-                    {/* Email - Clickable */}
                     {profile.email && (
                       <a 
                         href={`mailto:${profile.email}`}
@@ -572,7 +876,6 @@ const handleMessage = async () => {
                         <Mail size={14} className="flex-shrink-0" />
                       </a>
                     )}
-                    {/* Phone - Clickable (Freelancer only) */}
                     {isFreelancer && freelancerData.phone && (
                       <a 
                         href={`tel:${freelancerData.phone.replace(/\s+/g, '')}`}
@@ -584,7 +887,6 @@ const handleMessage = async () => {
                     )}
                   </div>
 
-                  {/* Social Links - Clickable Icons */}
                   {(socials.facebook || socials.instagram || socials.twitter) && (
                     <div className="flex gap-3 mt-1 pt-2 border-t border-white/10">
                       {socials.facebook && (
@@ -623,12 +925,9 @@ const handleMessage = async () => {
               </div>
             </div>
 
-            {/* TWO COLUMN LAYOUT - Side by Side */}
+            {/* TWO COLUMN LAYOUT */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              
-              {/* LEFT COLUMN - Following Section (Social Profile) OR Skills (Freelancer) */}
               {(!isFreelancer || view === 'normal') ? (
-                /* NORMAL PROFILE - Following Section */
                 <div className="backdrop-blur-sm bg-white/[0.02] border border-white/10 rounded-2xl p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-white">Following</h2>
@@ -690,24 +989,28 @@ const handleMessage = async () => {
                   </div>
                 </div>
               ) : (
-                /* FREELANCER PROFILE - Skills Section */
                 <div className="backdrop-blur-sm bg-white/[0.02] border border-white/10 rounded-2xl p-6">
                   <h2 className="text-lg font-semibold text-white mb-4">Skills</h2>
                   <div className="flex flex-wrap gap-2">
-                    {(freelancerData.skills && freelancerData.skills.length > 0 ? freelancerData.skills : ['video editing', 'photography', 'cinematography']).map((skill: string, index: number) => (
-                      <span key={index} className="px-4 py-2 bg-purple-500/20 text-purple-400 rounded-lg text-sm">{skill}</span>
+                    {(freelancerData.skills && freelancerData.skills.length > 0 
+                      ? freelancerData.skills 
+                      : ['video editing', 'photography', 'cinematography']
+                    ).map((skill: string, index: number) => (
+                      <span key={index} className="px-4 py-2 bg-purple-500/20 text-purple-400 rounded-lg text-sm">
+                        {skill}
+                      </span>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* RIGHT COLUMN - Posts (Social Profile) OR Portfolio (Freelancer) */}
               {(!isFreelancer || view === 'normal') ? (
-                /* NORMAL PROFILE - Posts Section */
                 <div className="backdrop-blur-sm bg-white/[0.02] border border-white/10 rounded-2xl p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-white">My Community Posts</h2>
-                    <span className="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded-full">{posts.length} posts</span>
+                    <span className="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded-full">
+                      {posts.length} posts
+                    </span>
                   </div>
                   {posts.length > 0 ? (
                     <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
@@ -715,13 +1018,25 @@ const handleMessage = async () => {
                         <div key={post.id} className="bg-white/[0.02] border border-white/10 rounded-xl p-4 hover:border-purple-500/30">
                           <div className="flex items-center gap-2 mb-2">
                             <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 overflow-hidden">
-                              {profile.photoURL ? <img src={profile.photoURL} alt={profile.name} className="w-full h-full object-cover" /> : <span className="text-xs text-white font-bold block text-center">{profile.name?.[0]?.toUpperCase()}</span>}
+                              {profile.photoURL ? (
+                                <img src={profile.photoURL} alt={profile.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-xs text-white font-bold block text-center">
+                                  {profile.name?.[0]?.toUpperCase()}
+                                </span>
+                              )}
                             </div>
                             <span className="text-xs text-gray-500">{formatPostDate(post.createdAt)}</span>
-                            {post.postType && <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full">{post.postType}</span>}
+                            {post.postType && (
+                              <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full">
+                                {post.postType}
+                              </span>
+                            )}
                           </div>
                           <p className="text-sm text-gray-300 mb-2 line-clamp-3">{post.content}</p>
-                          {post.imageUrl && <img src={post.imageUrl} alt="Post" className="mt-2 rounded-lg max-h-40 object-cover w-full" />}
+                          {post.imageUrl && (
+                            <img src={post.imageUrl} alt="Post" className="mt-2 rounded-lg max-h-40 object-cover w-full" />
+                          )}
                           <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
                             <span>❤️ {post.likesCount || 0}</span>
                             <span>💬 {post.commentsCount || 0}</span>
@@ -734,7 +1049,6 @@ const handleMessage = async () => {
                   )}
                 </div>
               ) : (
-                /* FREELANCER PROFILE - Portfolio Section */
                 <div className="backdrop-blur-sm bg-white/[0.02] border border-white/10 rounded-2xl p-6">
                   <h2 className="text-lg font-semibold text-white mb-4">Portfolio</h2>
                   {(freelancerData.portfolio && freelancerData.portfolio.length > 0) ? (
@@ -745,7 +1059,13 @@ const handleMessage = async () => {
                             <div className="flex-1">
                               <p className="font-semibold text-white">{item.client}</p>
                               <div className="flex items-center gap-1">
-                                {[...Array(5)].map((_, i) => <Star key={i} size={12} className={i < item.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-600'} />)}
+                                {[...Array(5)].map((_, i) => (
+                                  <Star 
+                                    key={i} 
+                                    size={12} 
+                                    className={i < item.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-600'} 
+                                  />
+                                ))}
                                 <span className="text-xs text-gray-400 ml-2">{item.rating}/5</span>
                               </div>
                             </div>
@@ -762,17 +1082,18 @@ const handleMessage = async () => {
               )}
             </div>
 
-            {/* ADDITIONAL SECTIONS - Only for Freelancer View */}
             {isFreelancer && view === 'freelancer' && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Languages Section */}
                 <div className="backdrop-blur-sm bg-white/[0.02] border border-white/10 rounded-2xl p-6">
                   <h2 className="text-lg font-semibold text-white mb-4">Languages Known</h2>
                   <div className="space-y-3">
-                    {(freelancerData.languages && freelancerData.languages.length > 0 ? freelancerData.languages : [
-                      { name: 'Hindi', level: 'Native' },
-                      { name: 'English', level: 'Fluent' }
-                    ]).map((lang: any, index: number) => (
+                    {(freelancerData.languages && freelancerData.languages.length > 0 
+                      ? freelancerData.languages 
+                      : [
+                          { name: 'Hindi', level: 'Native' },
+                          { name: 'English', level: 'Fluent' }
+                        ]
+                    ).map((lang: any, index: number) => (
                       <div key={index} className="flex justify-between">
                         <span className="text-gray-300">{lang.name}</span>
                         <span className="text-sm text-purple-400 capitalize">{lang.level}</span>
@@ -781,13 +1102,15 @@ const handleMessage = async () => {
                   </div>
                 </div>
 
-                {/* Education Section */}
                 <div className="backdrop-blur-sm bg-white/[0.02] border border-white/10 rounded-2xl p-6">
                   <h2 className="text-lg font-semibold text-white mb-4">Education</h2>
                   <div className="space-y-3">
-                    {(freelancerData.education && freelancerData.education.length > 0 ? freelancerData.education : [
-                      { degree: 'BA in Chinese', institution: 'Visva Bharati University', year: '2026' }
-                    ]).map((edu: any, index: number) => (
+                    {(freelancerData.education && freelancerData.education.length > 0 
+                      ? freelancerData.education 
+                      : [
+                          { degree: 'BA in Chinese', institution: 'Visva Bharati University', year: '2026' }
+                        ]
+                    ).map((edu: any, index: number) => (
                       <div key={index}>
                         <p className="font-semibold text-white">{edu.degree}</p>
                         <p className="text-sm text-gray-400">{edu.institution} · {edu.year}</p>
@@ -798,7 +1121,6 @@ const handleMessage = async () => {
               </div>
             )}
 
-            {/* Review of You Section - Only for Normal Profile */}
             {(!isFreelancer || view === 'normal') && (
               <div className="backdrop-blur-sm bg-white/[0.02] border border-white/10 rounded-2xl p-6">
                 <h3 className="text-sm font-semibold text-white mb-2">Review of You:</h3>
