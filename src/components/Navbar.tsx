@@ -154,10 +154,13 @@ export default function Navbar() {
     for (const notif of unreadNotifs) await markNotificationAsRead(notif.id);
   };
 
-  // Focus input when expanded
+  // ✅ FIXED: Focus input when expanded — with proper delay
   useEffect(() => {
     if (isSearchExpanded && searchInputRef.current) {
-      setTimeout(() => searchInputRef.current?.focus(), 150);
+      const timer = setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 250);
+      return () => clearTimeout(timer);
     }
   }, [isSearchExpanded]);
 
@@ -413,7 +416,7 @@ export default function Navbar() {
               </div>
             </Link>
 
-            {/* ===== MOBILE: NAV ICONS (no bg, white highlight, gradient underline on active) ===== */}
+            {/* ===== MOBILE: NAV ICONS ===== */}
             <div className="lg:hidden flex items-center gap-0.5 ml-1">
               <AnimatePresence>
                 {!isSearchExpanded && (
@@ -450,7 +453,7 @@ export default function Navbar() {
               </AnimatePresence>
             </div>
 
-            {/* ===== DESKTOP: NAV LINKS (unchanged) ===== */}
+            {/* ===== DESKTOP: NAV LINKS ===== */}
             <div className="hidden lg:flex items-center gap-6 text-sm">
               {navLinks.map((link) => {
                 const isActive = pathname === link.href || pathname.startsWith(link.href + "/");
@@ -477,11 +480,10 @@ export default function Navbar() {
           {/* ========== RIGHT SIDE ========== */}
           <div className="flex items-center gap-1 sm:gap-2 relative flex-shrink-0">
 
-            {/* === MOBILE SEARCH — default: icon only | expanded: input pill === */}
+            {/* === MOBILE SEARCH — with stopPropagation fixes === */}
             <div className="lg:hidden flex-shrink-0" ref={searchRef}>
               <AnimatePresence mode="wait" initial={false}>
                 {isSearchExpanded ? (
-                  // 🔍 EXPANDED — input pill
                   <motion.div
                     key="search-expanded"
                     initial={{ width: 0, opacity: 0 }}
@@ -489,6 +491,7 @@ export default function Navbar() {
                     exit={{ width: 0, opacity: 0 }}
                     transition={{ duration: 0.3, ease: 'easeOut' }}
                     className="overflow-hidden"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <div className="flex items-center 
                                     bg-white/[0.07] backdrop-blur-xl 
@@ -503,6 +506,8 @@ export default function Navbar() {
                                    focus:outline-none text-sm min-w-0"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        onFocus={(e) => e.stopPropagation()}
                       />
                       {searchLoading && (
                         <div className="ml-2 flex-shrink-0">
@@ -510,7 +515,9 @@ export default function Navbar() {
                         </div>
                       )}
                       <button
-                        onClick={() => {
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setIsSearchExpanded(false);
                           setSearchTerm('');
                           setSearchResults([]);
@@ -518,19 +525,22 @@ export default function Navbar() {
                         className="ml-1 flex-shrink-0 p-0.5 rounded-full text-gray-400 hover:text-white transition-colors"
                         aria-label="Close search"
                       >
-                        <Search className="w-4 h-4" />
+                        <X className="w-4 h-4" />
                       </button>
                     </div>
                   </motion.div>
                 ) : (
-                  // 🔍 COLLAPSED — icon only (no pill)
                   <motion.button
                     key="search-collapsed"
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ duration: 0.15 }}
-                    onClick={() => setIsSearchExpanded(true)}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsSearchExpanded(true);
+                    }}
                     className="p-2 rounded-full text-gray-400 hover:text-white transition-colors"
                     aria-label="Search"
                   >
@@ -578,7 +588,7 @@ export default function Navbar() {
               </div>
             </div>
 
-            {/* Upload Dropdown — md+ only */}
+            {/* Upload Dropdown */}
             {user && (
               <div className="relative hidden md:block" ref={uploadRef}>
                 <button
@@ -623,7 +633,7 @@ export default function Navbar() {
               </div>
             )}
 
-            {/* Notifications — সবসময় visible */}
+            {/* Notifications */}
             {user && (
               <div className="relative" ref={notificationRef}>
                 <button
@@ -717,7 +727,7 @@ export default function Navbar() {
               </div>
             )}
 
-            {/* Messages — সবসময় visible */}
+            {/* Messages */}
             {user && (
               <Link
                 href="/community/messages"
@@ -801,7 +811,7 @@ export default function Navbar() {
               </Link>
             )}
 
-            {/* Hamburger — সবসময় visible, mobile-only */}
+            {/* Hamburger */}
             <div className="relative lg:hidden" ref={mobileMenuRef}>
               <button
                 className="p-2 rounded-full text-gray-400 hover:text-white transition-colors"
@@ -811,7 +821,6 @@ export default function Navbar() {
                 {isMobileMenuOpen ? <X className="w-[18px] h-[18px]" /> : <Menu className="w-[18px] h-[18px]" />}
               </button>
 
-              {/* Mobile Popup Menu */}
               <AnimatePresence>
                 {isMobileMenuOpen && (
                   <motion.div

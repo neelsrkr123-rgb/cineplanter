@@ -322,7 +322,7 @@ export default function PublicProfilePage() {
 
           {/* Avatar */}
           <div className="flex justify-center mb-4 mt-2">
-            <div className="w-26 h-26 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-2xl border-2 border-white/10">
+            <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-2xl border-2 border-white/10">
               {profile.photoURL ? (
                 <img src={profile.photoURL} alt={profile.name} className="w-full h-full object-cover" />
               ) : (
